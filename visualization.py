@@ -19,7 +19,8 @@ question_list = ["Question 1", "Question 2", "Question 3"]
 # different fonts
 TITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", 90)
 SUBTITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", 60)
-PARAGRAPH_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", 25)
+PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", 25)
+BIG_PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", 60)
 
 while running:
     # poll for events
@@ -28,8 +29,10 @@ while running:
     mouse = pygame.mouse.get_pos()
 
     for event in pygame.event.get():
+        # quitting the program
         if event.type == pygame.QUIT:
             running = False
+        # clicking buttons
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if start_button.collidepoint(event.pos) and current == "home":
                 current = "recommender"
@@ -41,7 +44,7 @@ while running:
                     question_index += 1
                 else:
                     current = "recommendations"
-
+        # typing text
         elif event.type == pygame.KEYDOWN:
                 if user_input_active:
                     if event.key == pygame.K_BACKSPACE:
@@ -61,14 +64,16 @@ while running:
         screen.blit(start_button_text, (window_x // 2 - title_x/6, window_y // 2 +title_y/13))
 
     elif current == "recommender":
-
+        # displaying question
         question_text = SUBTITLE_FONT.render(question_list[question_index], True, (255,255,255))
         screen.blit(question_text, (window_x // 2 - title_x/6, 200))
 
+        # user input
         user_input = pygame.draw.rect(screen, (44, 201, 76), (window_x // 2 - title_x/3, window_y // 2, 500, 100), 0)
         input_text = PARAGRAPH_FONT.render(user_input_text, True, (255,255,255))
         screen.blit(input_text, (window_x // 2 - title_x/6, window_y // 2 +title_y/13))
 
+        # enter button
         input_enter = pygame.draw.rect(screen, (255,255,255), (window_x // 2 - title_x/3, window_y // 2 + 200, 500, 100), 0)
         enter_text = SUBTITLE_FONT.render("ENTER", True, (0,0,0))
         screen.blit(enter_text, (window_x // 2 - title_x/6, window_y // 2 +title_y/13+200))
