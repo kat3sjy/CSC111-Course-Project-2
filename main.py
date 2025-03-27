@@ -16,4 +16,17 @@ with open('spotify_songs.csv', 'r') as file:
         filter_row = {song: row[song] for song in columns_to_keep}
         filtered_rows.append(filter_row)
 
+#    def similarity_score(self, other: _Vertex) -> float:
+#        """Return the similarity score between this song vertex and another, based on audio features."""
+#        if not self.features or not other.features:
+#            return 0.0
+
+#        total = 0
+#        for feature in self.features:
+#            v1 = self.features[feature]
+#            v2 = other.features[feature]
+#            total += (v1 - v2) **
+
+#        euclidean_distance = (total) ** 0.5
+#        return 1 / (1 + euclidean_distance)
 
