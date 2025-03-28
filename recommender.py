@@ -71,7 +71,6 @@ class SpotifyRecommender:
         # Get top recommendations
         top_recs = sorted(recommendations.items(), key=lambda x: x[1], reverse=True)[:num_recs]
 
-        # Prepare results
         results = []
         for song_id, score in top_recs:
             song = next(s for s in self.songs if s['track_id'] == song_id)
