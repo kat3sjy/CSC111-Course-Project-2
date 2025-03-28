@@ -6,7 +6,7 @@ class SpotifyRecommender:
     """
     Recommends a list of similar songs based on user input.
     """
-    def __init__(self, csv_file='spotify_songs.csv'):
+    def __init__(self, csv_file='spotify_songs_subset.csv'):
         """Initialize with CSV file path"""
         try:
             self.songs = pd.read_csv(csv_file).to_dict('records')
