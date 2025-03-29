@@ -1,211 +1,193 @@
-from __future__ import annotations
-from typing import Optional, Union, List, Dict
-import pandas as pd  # Reads, processes CSV file
-import numpy as np  # Efficient mathematical computations
-from sklearn.neighbors import NearestNeighbors  # Efficient similarity search
-from tqdm import tqdm  # Progress visualization (don't need in final version)
+import csv
+from typing import Any, Union, Optional, Dict, List
 
+class _WeightedVertex:
+    """A vertex in a weighted song similarity graph."""
 
-class _SongVertex:
-    """A vertex in a song similarity graph."""
-    item: str
-    features: Dict[str, float]
-    neighbours: Dict[_SongVertex, float]
-
-    def __init__(self, item: str, features: Dict[str, float]) -> None:
+    def __init__(self, item: Any, metadata: Optional[dict] = None) -> None:
         self.item = item
-        self.features = features
+        self.metadata = metadata if metadata is not None else {}
         self.neighbours = {}
+
+    def similarity_score(self, other: '_WeightedVertex') -> float:
+        """Calculate similarity using only key audio features."""
+        # Normalize tempo (0-250 → 0-1)
+        self_tempo = self.metadata['tempo'] / 250
+        other_tempo = other.metadata['tempo'] / 250
+
+        # Calculate differences
+        dance_diff = abs(self.metadata['danceability'] - other.metadata['danceability'])
+        energy_diff = abs(self.metadata['energy'] - other.metadata['energy'])
+        valence_diff = abs(self.metadata['valence'] - other.metadata['valence'])
+        tempo_diff = abs(self_tempo - other_tempo)
+
+        # Weighted similarity (1 - average difference)
+        avg_diff = (dance_diff * 0.4 + energy_diff * 0.3 +
+                    valence_diff * 0.2 + tempo_diff * 0.1)
+        return 1 - avg_diff  # Convert to similarity (1 = identical)
 
 
 class SongGraph:
-    """Optimized song similarity graph using ANN."""
-    _vertices: Dict[str, _SongVertex]
-    _metadata: Dict[str, Dict]
+    """A graph representing songs and their similarities."""
 
     def __init__(self):
         self._vertices = {}
-        self._metadata = {}
+        self._song_lookup = {}  # For case-insensitive song name lookup
 
-    def add_song(self, track_id: str, features: Dict[str, float], metadata: Dict[str, Union[str, int]]) -> None:
-        """
-        Adds a song to the graph with its audio features and metadata. Creates a new vertex in the graph if the track_id doesn't already exist.
-        """
-        if track_id not in self._vertices:
-            self._vertices[track_id] = _SongVertex(track_id, features)
-            self._metadata[track_id] = metadata
+    def add_vertex(self, item: Any, metadata: Optional[dict] = None) -> None:
+        if item not in self._vertices:
+            self._vertices[item] = _WeightedVertex(item, metadata)
+            # Create lookup by lowercase song name
+            if metadata:
+                song_key = metadata['track_name'].lower()
+                self._song_lookup[song_key] = item
 
-    def build_similarity_edges(self, threshold: float = 0.7, n_neighbors: int = 100) -> None:
-        """
-        Constructs similarity edges between songs using approximate nearest neighbors.
+    def add_edge(self, item1: Any, item2: Any, weight: Optional[float] = None) -> None:
+        if item1 in self._vertices and item2 in self._vertices:
+            v1 = self._vertices[item1]
+            v2 = self._vertices[item2]
+            weight = weight if weight is not None else v1.similarity_score(v2)
+            v1.neighbours[v2] = weight
+            v2.neighbours[v1] = weight
 
-        For each song in the graph, finds its most similar neighbors based on audio features and creates weighted edges between them. Uses cosine similarity over normalized audio features.
-        """
-        track_ids = list(self._vertices.keys())
-        if not track_ids:
-            return
+    def find_song_id(self, song_name: str) -> Optional[str]:
+        """Find a song ID by name (case-insensitive with partial matching)."""
+        song_name = song_name.lower().strip()
 
-        feature_names = [
-            'danceability', 'energy', 'loudness',
-            'speechiness', 'acousticness', 'instrumentalness',
-            'liveness', 'valence', 'tempo'
-        ]
-        X = np.array([list(self._vertices[track_id].features.values()) for track_id in track_ids])
+        # First try exact match
+        if song_name in self._song_lookup:
+            return self._song_lookup[song_name]
 
-        # Add small noise to prevent exact duplicates
-        X += np.random.normal(0, 0.0001, X.shape)
+        # Then try partial matches
+        matches = [k for k in self._song_lookup if song_name in k]
+        if len(matches) == 1:
+            return self._song_lookup[matches[0]]
 
-        nbrs = NearestNeighbors(
-            n_neighbors=min(n_neighbors, len(track_ids) - 1),
-            metric='cosine',
-            algorithm='auto'
-        ).fit(X)
-
-        distances, indices = nbrs.kneighbors(X)
-        similarities = 1 - distances
-
-        for i in tqdm(range(len(track_ids)), desc="Building edges"):
-            for j, sim in zip(indices[i], similarities[i]):
-                if i != j and sim > threshold:
-                    # if sim > 0.99:  # Cap near-perfect similarities
-                    #     sim = 0.99
-                    v1 = self._vertices[track_ids[i]]
-                    v2 = self._vertices[track_ids[j]]
-                    v1.neighbours[v2] = sim
-                    v2.neighbours[v1] = sim
-
-    def get_similar_songs(self, track_ids: List[str], limit: int = 10) -> List[Dict]:
-        """
-        Retrieves recommended songs based on similarity to input track(s).
-
-        For each input track, aggregates similarities from its neighbors in the graph, then returns the top most similar songs not in the original input list. When multiple input tracks are provided, similarities are averaged across all tracks that reference a particular song.
-        """
-        if not track_ids:
-            return []
-
-        similarity_sums = {}
-        for track_id in track_ids:
-            if track_id in self._vertices:
-                for neighbor, weight in self._vertices[track_id].neighbours.items():
-                    similarity_sums[neighbor.item] = similarity_sums.get(neighbor.item, 0.0) + weight
-
-        similar_songs = []
-        for song_id, total_sim in similarity_sums.items():
-            if song_id not in track_ids:
-                avg_sim = total_sim / len(track_ids)
-                similar_songs.append({
-                    'track_id': song_id,
-                    'track_name': self._metadata[song_id]['track_name'],
-                    'artists': self._metadata[song_id]['artists'],
-                    'album': self._metadata[song_id]['album_name'],
-                    'similarity': min(0.99, avg_sim)  # Cap displayed similarity
-                })
-
-        similar_songs.sort(key=lambda x: (-x['similarity'], x['track_name']))
-        return similar_songs[:limit]
-
-    def find_song_by_name(self, track_name: str) -> Optional[str]:
-        """
-        Searches for a track by name and returns its track_id.
-        """
-        lower_name = track_name.lower()
-        for track_id, meta in self._metadata.items():
-            if meta['track_name'].lower() == lower_name:
-                return track_id
         return None
 
-
-class SpotifyGraphRecommender:
-    """
-    A song recommendation system using graph-based similarity.
-    """
-    def __init__(self, data_path: str):
-        self.graph = SongGraph()
-        self._load_data(data_path)
-        self.graph.build_similarity_edges()
-
-    def _load_data(self, filepath: str) -> None:
-        df = pd.read_csv(filepath)
-
-        features = [
-            'danceability', 'energy', 'loudness',
-            'speechiness', 'acousticness', 'instrumentalness',
-            'liveness', 'valence', 'tempo'
-        ]
-
-        for feature in features:
-            if feature != 'loudness':
-                q1 = df[feature].quantile(0.25)
-                q3 = df[feature].quantile(0.75)
-                iqr = q3 - q1
-                df[feature] = (df[feature] - q1) / iqr
+    def recommend_songs(self, song_names: List[str], limit: int = 5) -> List[Dict]:
+        # Convert song names to IDs
+        song_ids = []
+        for name in song_names:
+            song_id = self.find_song_id(name)
+            if song_id:
+                song_ids.append(song_id)
             else:
-                df['loudness'] = (df['loudness'] - (-60)) / 60
+                print(f"Warning: Song '{name}' not found in dataset")
 
-        for _, row in tqdm(df.iterrows(), total=len(df), desc="Loading songs"):
-            features_dict = {f: row[f] for f in features}
-            metadata = {
-                'track_name': row['track_name'],
-                'artists': row['artists'],
-                'album_name': row['album_name'],
-                'popularity': row['popularity']
+        if not song_ids:
+            return []
+
+        # Calculate recommendations
+        scores = {}
+        for song_id in song_ids:
+            seed_vertex = self._vertices[song_id]
+            for neighbor, weight in seed_vertex.neighbours.items():
+                if neighbor.item in song_ids:
+                    continue
+                if neighbor.item in scores:
+                    scores[neighbor.item]['score'] += weight
+                else:
+                    scores[neighbor.item] = {'score': weight, 'metadata': neighbor.metadata}
+
+        # Sort by score and popularity
+        sorted_scores = sorted(
+            scores.items(),
+            key=lambda x: (-x[1]['score'], -x[1]['metadata'].get('popularity', 0))
+        )
+
+        # Prepare clean recommendations
+        recommendations = []
+        for track_id, data in sorted_scores[:limit]:
+            rec = {
+                'track': data['metadata']['track_name'],
+                'artist': data['metadata']['artists'],
+                'album': data['metadata']['album_name'],
+                'score': data['score'] / len(song_ids)
             }
-            self.graph.add_song(row['track_id'], features_dict, metadata)
+            recommendations.append(rec)
 
-    def recommend(self, track_names: List[str], limit: int = 10) -> List[Dict]:
-        """
-        Generates *limit* song recommendations based on input track names.
-        """
-        track_ids = []
-        for name in track_names:
-            track_id = self.graph.find_song_by_name(name)
-            if track_id:
-                track_ids.append(track_id)
+        return recommendations
 
-        return self.graph.get_similar_songs(track_ids, limit)
+
+def load_graph(songs_file: str) -> SongGraph:
+    """Load song data using only essential features for similarity."""
+    graph = SongGraph()
+
+    with open(songs_file, 'r', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        headers = next(reader)  # Skip header row
+
+        for row in reader:
+            # Only store features we'll use for similarity
+            metadata = {
+                'track_name': row[3],  # track_name
+                'artists': row[1],  # artists
+                'danceability': float(row[7]),  # danceability
+                'energy': float(row[8]),  # energy
+                'valence': float(row[16]),  # valence
+                'tempo': float(row[17])  # tempo
+            }
+
+            graph.add_vertex(metadata['track_name'], metadata)
+
+    # Create similarity edges using just these features
+    songs = list(graph._vertices.values())
+    for i in range(len(songs)):
+        for j in range(i + 1, len(songs)):
+            similarity = songs[i].similarity_score(songs[j])
+            if similarity > 0.3:
+                graph.add_edge(songs[i].item, songs[j].item, similarity)
+
+    return graph
+
+def get_recommendation_count() -> int:
+    """Get number of recommendations with proper validation."""
+    while True:
+        try:
+            print("How many recommendations would you like? (1-10)")
+            limit = int(input("> ").strip())
+            if 1 <= limit <= 10:
+                return limit
+            print("Please enter a number between 1 and 10.")
+        except ValueError:
+            print("Please enter a valid number.")
+
+
+def get_song_input() -> list[str]:
+    """Get song names. Assume all song names are in dataset."""
+    print("\nEnter song names (comma separated), or 'q' to quit:")
+    user_input = input("> ").strip()
+    return [] if user_input.lower() == 'q' else [name.strip() for name in user_input.split(',')]
 
 
 def main():
-    """
-    Main loop.
-    """
     print("Spotify Song Recommender")
-    print("Loading data...")
-    try:
-        recommender = SpotifyGraphRecommender('spotify_songs_small.csv')
-    except FileNotFoundError:
-        print("Error: Could not find file.")
-        return
-
-    print("\nEnter song names separated by commas.")
-    print("Type 'quit' to exit\n")
+    graph = load_graph('spotify_songs_small.csv')
 
     while True:
-        print("\nEnter song names:")
-        user_input = input("> ").strip()
-
-        if user_input.lower() == 'quit':
+        # Get song names (no validation)
+        song_names = get_song_input()
+        if not song_names:
             break
 
-        song_names = [name.strip() for name in user_input.split(",")]
+        # Get recommendation count
+        limit = get_recommendation_count()
 
-        print("\nHow many recommendations? (1-20)")
-        try:
-            limit = min(max(int(input("> ")), 1), 20)
-        except ValueError:
-            limit = 10
+        # Get recommendations
+        recommendations = graph.recommend_songs(
+            [graph.find_song_id(name) for name in song_names],
+            limit
+        )
 
-        recs = recommender.recommend(song_names, limit)
+        # Display results
+        print("\nRecommended Songs:")
+        for i, rec in enumerate(recommendations, 1):
+            print(f"{i}. {rec['track']} by {rec['artist']} ({rec['score']:.2f})")
 
-        if not recs:
-            print("No recommendations found. Check your song names.")
-            continue
-
-        print(f"\nTop {limit} recommendations:")
-        for i, rec in enumerate(recs, 1):
-            print(f"{i}. {rec['track_name']} by {rec['artists']} "
-                  f"(Similarity: {rec['similarity']:.2f})")
-
+        print("\nTry another search? (y/n)")
+        if input("> ").lower() != 'y':
+            break
 
 if __name__ == "__main__":
     main()
