@@ -37,7 +37,7 @@ class SongGraph:
     def add_vertex(self, item: Any, metadata: Optional[dict] = None) -> None:
         if item not in self._vertices:
             self._vertices[item] = _WeightedVertex(item, metadata)
-            # Create lookup by lowercase song name
+            # Create lookup by name
             if metadata:
                 song_key = metadata['track_name'].lower()
                 self._song_lookup[song_key] = item
@@ -51,14 +51,12 @@ class SongGraph:
             v2.neighbours[v1] = weight
 
     def find_song_id(self, song_name: str) -> Optional[str]:
-        """Find a song ID by name (case-insensitive with partial matching)."""
+        """Find a song ID by name."""
         song_name = song_name.lower().strip()
 
-        # First try exact match
         if song_name in self._song_lookup:
             return self._song_lookup[song_name]
 
-        # Then try partial matches
         matches = [k for k in self._song_lookup if song_name in k]
         if len(matches) == 1:
             return self._song_lookup[matches[0]]
@@ -72,8 +70,9 @@ class SongGraph:
             song_id = self.find_song_id(name)
             if song_id:
                 song_ids.append(song_id)
-            else:
-                print(f"Warning: Song '{name}' not found in dataset")
+            # Assume all songs are found in dataset
+            # else:
+            #     print(f"Song '{name}' not found in dataset")
 
         if not song_ids:
             return []
@@ -131,7 +130,7 @@ def load_graph(songs_file: str) -> SongGraph:
 
             graph.add_vertex(metadata['track_name'], metadata)
 
-    # Create similarity edges using just these features
+    # Create similarity edges
     songs = list(graph._vertices.values())
     for i in range(len(songs)):
         for j in range(i + 1, len(songs)):
