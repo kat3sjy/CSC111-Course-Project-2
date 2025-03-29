@@ -132,11 +132,19 @@ def load_graph(songs_file: str) -> SongGraph:
 
     # Create similarity edges
     songs = list(graph._vertices.values())
-    for i in range(len(songs)):
-        for j in range(i + 1, len(songs)):
-            similarity = songs[i].similarity_score(songs[j])
-            if similarity > 0.3:
-                graph.add_edge(songs[i].item, songs[j].item, similarity)
+    for i, song1 in enumerate(songs):
+        similarities = []
+        for j, song2 in enumerate(songs):
+            if i == j:
+                continue
+            similarity = song1.similarity_score(song2)
+            similarities.append((song2, similarity))
+
+        # Sort by similarity and keep top 20
+        similarities.sort(key=lambda x: -x[1])
+        for song2, similarity in similarities[:20]:
+            if similarity > 0.3:  # Minimum similarity threshold
+                graph.add_edge(song1.item, song2.item, similarity)
 
     return graph
 
