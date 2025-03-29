@@ -122,6 +122,7 @@ def load_graph(songs_file: str) -> SongGraph:
             metadata = {
                 'track_name': row[3],  # track_name
                 'artists': row[1],  # artists
+                'album_name': row[2],  # album name
                 'danceability': float(row[7]),  # danceability
                 'energy': float(row[8]),  # energy
                 'valence': float(row[16]),  # valence
