@@ -57,10 +57,6 @@ class SongGraph:
         if song_name in self._song_lookup:
             return self._song_lookup[song_name]
 
-        matches = [k for k in self._song_lookup if song_name in k]
-        if len(matches) == 1:
-            return self._song_lookup[matches[0]]
-
         return None
 
     def recommend_songs(self, song_names: List[str], limit: int = 5) -> List[Dict]:
@@ -171,7 +167,7 @@ def get_song_input() -> list[str]:
 
 def main():
     print("Spotify Song Recommender")
-    graph = load_graph('spotify_songs_small.csv')
+    graph = load_graph('spotify_songs_smaller.csv')
 
     while True:
         # Get song names (no validation)
