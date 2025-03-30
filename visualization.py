@@ -43,8 +43,8 @@ input_enter = None
 test_button = None
 limit_enter = None
 
-song_list = ["Comedy", "Ghost - Acoustic", "To Begin Again", "Can't Help Falling In Love", "Hold On", "Hold On",
-             "Hold On"]
+song_list = ["Comedy", "Ghost - Acoustic", "To Begin Again", "Can't Help Falling In Love", "Hold On", "Days I Will Remember",
+             "Say Something"]
 song_names = []
 recommendations = []
 dropdown_menu = []
@@ -52,6 +52,8 @@ dropdown_selected = [0, 0, 0, 0, 0, 0, 0]
 limit_selected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 limit_menu = []
 rec_limit = None
+
+error_message = False
 
 
 def load_graph(songs_file: str) -> WeightedGraph:
@@ -130,35 +132,37 @@ while running:
                         # print("option: ", option)
                         song_names.append(song_list[option])
                         dropdown_selected[option] += 1
+                        error_message = False
 
                 if input_enter and input_enter.collidepoint(event.pos):
-                    current = "limit"
+                    print(song_names)
+                    if not song_names:
+                        error_message = True
+                    else:
+                        current = "limit"
 
             elif current == "limit":
                 for limit in range(len(limit_menu)):
                     if limit_menu[limit].collidepoint(event.pos):
                         if limit_selected[limit] % 2 != 0:
-                            limit_selected[limit] += 1
+                            rec_limit = None
+                            limit_selected[limit] -= 1
                         elif any({x % 2 != 0 for x in limit_selected}):
                             pass
                         else:
                             limit_selected[limit] += 1
                             rec_limit = limit + 1
+                            error_message = False
+
 
                 if limit_enter and limit_enter.collidepoint(event.pos):
                     # Get recommendations
                     if rec_limit is not None:
                         recommendations = graph.recommend_songs(song_names, rec_limit)
+                        current = "recommendations"
+                    else:
+                        error_message = True
 
-                    current = "recommendations"
-
-        # # typing text
-        # elif event.type == pygame.KEYDOWN:
-        #         if user_input_active:
-        #             if event.key == pygame.K_BACKSPACE:
-        #                 user_input_text = user_input_text[:-1]
-        #             else:
-        #                 user_input_text += event.unicode
 
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("black")
@@ -174,15 +178,17 @@ while running:
 
 
     elif current == "recommender":
+
+        if error_message:
+            question_text = PARAGRAPH_FONT.render("Please select at least one song.",
+                                                 True,
+                                                 (255, 255, 255))
+            screen.blit(question_text, (20, 55))
+
         # displaying question
         question_text = SUBTITLE_FONT.render("From the following list below, select some songs that you like.", True,
                                              (255, 255, 255))
         screen.blit(question_text, (20, 30))
-
-        # # user input
-        # user_input = pygame.draw.rect(screen, (29, 185, 84), (window_x // 2 - title_x/3, window_y // 2, 500, 100), 0)
-        # input_text = PARAGRAPH_FONT.render(user_input_text, True, (255,255,255))
-        # screen.blit(input_text, (window_x // 2 - title_x/6, window_y // 2 +title_y/13))
 
         # enter button
         input_enter = pygame.draw.rect(screen, (255, 255, 255), (window_x // 2, 670, 250, 50), 0)
@@ -213,6 +219,13 @@ while running:
 
 
     elif current == "limit":
+
+        if error_message:
+            question_text = PARAGRAPH_FONT.render("Please choose a number.",
+                                                 True,
+                                                 (255, 255, 255))
+            screen.blit(question_text, (20, 55))
+
         question_text = SUBTITLE_FONT.render("Choose the number of recommendations you want from 1-10", True,
                                              (255, 255, 255))
         screen.blit(question_text, (160, 230))
