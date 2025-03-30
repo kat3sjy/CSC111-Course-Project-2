@@ -2,7 +2,7 @@ import pygame
 import csv
 from recommender import WeightedGraph
 
-# pygame setup
+# pygame setup waaaaaa
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 current = "home"
