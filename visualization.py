@@ -34,42 +34,54 @@ limit_menu = []
 rec_limit = None
 
 def load_graph(songs_file: str) -> WeightedGraph:
-    """Load song data using only essential features for similarity."""
+    """Load song data and build similarity graph."""
     graph = WeightedGraph()
+    songs = []
 
     with open(songs_file, 'r', encoding='utf-8') as file:
         reader = csv.reader(file)
-        headers = next(reader)  # Skip header row
+        next(reader)
 
         for row in reader:
-            # Only store features we'll use for similarity
-            metadata = {
-                'track_name': row[3],  # track_name
-                'artists': row[1],  # artists
-                'album_name': row[2],  # album name
-                'danceability': float(row[7]),  # danceability
-                'energy': float(row[8]),  # energy
-                'valence': float(row[16]),  # valence
-                'tempo': float(row[17])  # tempo
-            }
-
-            graph.add_vertex(metadata['track_name'], metadata)
-
-    # Create similarity edges
-    songs = list(graph._vertices.values())
-    for i, song1 in enumerate(songs):
-        similarities = []
-        for j, song2 in enumerate(songs):
-            if i == j:
+            try:
+                metadata = {
+                    'track_name': row[3],
+                    'artists': row[1],
+                    'album_name': row[2],
+                    'popularity': float(row[4]),
+                    'danceability': float(row[7]),
+                    'energy': float(row[8]),
+                    'valence': float(row[16]),
+                    'tempo': float(row[17]),
+                    'loudness': float(row[9]),
+                    'acousticness': float(row[11]),
+                    'instrumentalness': float(row[12])
+                }
+                track_name = metadata['track_name']
+                graph.add_vertex(track_name, metadata)
+                songs.append(track_name)
+            except (IndexError, ValueError):
                 continue
-            similarity = song1.similarity_score(song2)
-            similarities.append((song2, similarity))
 
-        # Sort by similarity and keep top 20
+    for i in range(len(songs)):
+        song1 = songs[i]
+        if song1 not in graph.get_all_vertices():
+            continue
+
+        similarities = []
+        for j in range(i + 1, len(songs)):
+            song2 = songs[j]
+            if song2 not in graph.get_all_vertices():
+                continue
+
+            similarity = graph.get_similarity_score(song1, song2)
+            if similarity > 0.3:  # Threshold
+                similarities.append((song2, similarity))
+
+        # Keep top 20 most similar songs
         similarities.sort(key=lambda x: -x[1])
         for song2, similarity in similarities[:20]:
-            if similarity > 0.3:  # Minimum similarity threshold
-                graph.add_edge(song1.item, song2.item, similarity)
+            graph.add_edge(song1, song2, similarity)
 
     return graph
 
