@@ -214,7 +214,7 @@ def get_song_input() -> list[str]:
 def main():
     print("Spotify Song Recommender")
     print("Loading song data...")
-    graph = load_graph('spotify_songs_smaller.csv')
+    graph = load_graph('data/spotify_songs_smaller.csv')
 
     while True:
         song_ids = get_song_input()
