@@ -54,22 +54,22 @@ class WeightedGraph:
     """A graph representing songs and their similarities."""
 
     def __init__(self):
-        self.vertices = {}
+        self._vertices = {}
         self._song_lookup = {}
 
     def add_vertex(self, item: Any, metadata: Optional[dict] = None) -> None:
         """Add a song vertex to the graph."""
-        if item not in self.vertices:
-            self.vertices[item] = _WeightedVertex(item, metadata)
+        if item not in self._vertices:
+            self._vertices[item] = _WeightedVertex(item, metadata)
             if metadata:
                 song_key = metadata['track_name'].lower()
                 self._song_lookup[song_key] = item
 
     def add_edge(self, item1: Any, item2: Any, weight: Optional[float] = None) -> None:
         """Add a weighted edge between two songs."""
-        if item1 in self.vertices and item2 in self.vertices:
-            v1 = self.vertices[item1]
-            v2 = self.vertices[item2]
+        if item1 in self._vertices and item2 in self._vertices:
+            v1 = self._vertices[item1]
+            v2 = self._vertices[item2]
             weight = weight if weight is not None else v1.similarity_score(v2)
             v1.neighbours[v2] = weight
             v2.neighbours[v1] = weight
@@ -85,10 +85,10 @@ class WeightedGraph:
 
         scores = {}
         for song_id in song_ids:
-            if song_id not in self.vertices:
+            if song_id not in self._vertices:
                 continue
 
-            seed_vertex = self.vertices[song_id]
+            seed_vertex = self._vertices[song_id]
             for neighbor, weight in seed_vertex.neighbours.items():
                 if neighbor.item in song_ids:
                     continue
@@ -121,7 +121,8 @@ class WeightedGraph:
 
     @property
     def vertices(self):
-        return self.vertices
+        """Public read-only access to vertices."""
+        return self._vertices
 
 
 def load_graph(songs_file: str) -> WeightedGraph:
