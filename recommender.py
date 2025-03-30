@@ -92,9 +92,7 @@ class WeightedGraph:
     #     -_vertices:
     #         A collection of the vertices contained in this graph.
     #         Maps item to _Vertex object.
-    #     -_song_lookup: what is this
     _vertices: dict[Any, _WeightedVertex]
-    _song_lookup = dict[str, str]
 
     def __init__(self):
         self._vertices = {}
@@ -108,9 +106,6 @@ class WeightedGraph:
         """
         if item not in self._vertices:
             self._vertices[item] = _WeightedVertex(item, metadata)
-            if metadata:
-                song_key = metadata['track_name'].lower()
-                self._song_lookup[song_key] = item
 
     def add_edge(self, item1: Any, item2: Any, weight: Optional[float] = None) -> None:
         """Add a weighted edge between two songs, item1 and item2, and the given weight.
@@ -139,8 +134,12 @@ class WeightedGraph:
         return v1.similarity_score(v2)
 
     def find_song_id(self, song_name: str) -> Optional[str]:
-        """Find a song ID by name (case-insensitive)."""
-        return self._song_lookup.get(song_name.lower().strip())
+        """Find a song's vertex key (track name) by its name (case-insensitive)."""
+        target_name = song_name.lower().strip()
+        for vertex_key, vertex in self._vertices.items():
+            if vertex.metadata.get('track_name', '').lower() == target_name:
+                return vertex_key  # Return the vertex's key (track name)
+        return None  # Song not found
 
     def recommend_songs(self, song_names: List[str], limit: int = 5) -> List[Dict]:
         """Generate recommendations based on multiple seed songs."""
