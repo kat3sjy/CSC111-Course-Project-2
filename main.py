@@ -25,7 +25,7 @@ with open('spotify_songs.csv', 'r') as file:
 #        for feature in self.features:
 #            v1 = self.features[feature]
 #            v2 = other.features[feature]
-#            total += (v1 - v2) **
+#            total += (v1 - v2) ** 2
 
 #        euclidean_distance = (total) ** 0.5
 #        return 1 / (1 + euclidean_distance)
