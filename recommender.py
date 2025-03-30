@@ -214,7 +214,7 @@ def get_song_input() -> list[str]:
 def main():
     print("Spotify Song Recommender")
     print("Loading song data...")
-    graph = load_graph('spotify_songs_smaller.csv')
+    graph = load_graph('data/spotify_songs_smaller.csv')
 
     while True:
         song_ids = get_song_input()
@@ -239,8 +239,7 @@ if __name__ == '__main__':
     import python_ta
 
     python_ta.check_all(config={
-        'extra-imports': ['csv', 'math'],  # external modules used
-        'allowed-io': ['main', 'load_graph', 'get_song_input', 'get_recommendation_count'],
-        # functions using print/input
+        'extra-imports': ['pygame', 'csv', 'recommender'],
+        'allowed-io': [],
         'max-line-length': 120
     })

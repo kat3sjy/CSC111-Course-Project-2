@@ -16,8 +16,8 @@ user_input_active = False
 user_input_text = ''
 
 # different fonts
-TITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", int(window_y*0.06))
-SUBTITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", int(window_y*0.04))
+TITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", int(window_y * 0.06))
+SUBTITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", int(window_y * 0.04))
 PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", 25)
 BIG_PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", 60)
 
@@ -33,59 +33,61 @@ dropdown_menu = []
 limit_menu = []
 rec_limit = None
 
-# def load_graph(songs_file: str) -> WeightedGraph:
-#     """Load song data and build similarity graph."""
-#     graph = WeightedGraph()
-#     songs = []
-#
-#     with open(songs_file, 'r', encoding='utf-8') as file:
-#         reader = csv.reader(file)
-#         next(reader)
-#
-#         for row in reader:
-#             try:
-#                 metadata = {
-#                     'track_name': row[3],
-#                     'artists': row[1],
-#                     'album_name': row[2],
-#                     'popularity': float(row[4]),
-#                     'danceability': float(row[7]),
-#                     'energy': float(row[8]),
-#                     'valence': float(row[16]),
-#                     'tempo': float(row[17]),
-#                     'loudness': float(row[9]),
-#                     'acousticness': float(row[11]),
-#                     'instrumentalness': float(row[12])
-#                 }
-#                 track_name = metadata['track_name']
-#                 graph.add_vertex(track_name, metadata)
-#                 songs.append(track_name)
-#             except (IndexError, ValueError):
-#                 continue
-#
-#     for i in range(len(songs)):
-#         song1 = songs[i]
-#         if song1 not in graph.get_all_vertices():
-#             continue
-#
-#         similarities = []
-#         for j in range(i + 1, len(songs)):
-#             song2 = songs[j]
-#             if song2 not in graph.get_all_vertices():
-#                 continue
-#
-#             similarity = graph.get_similarity_score(song1, song2)
-#             if similarity > 0.3:  # Threshold
-#                 similarities.append((song2, similarity))
-#
-#         # Keep top 20 most similar songs
-#         similarities.sort(key=lambda x: -x[1])
-#         for song2, similarity in similarities[:20]:
-#             graph.add_edge(song1, song2, similarity)
-#
-#     return graph
-#
-# graph = load_graph('data/spotify_songs_smaller.csv')
+
+def load_graph(songs_file: str) -> WeightedGraph:
+    """Load song data and build similarity graph."""
+    graph = WeightedGraph()
+    songs = []
+
+    with open(songs_file, 'r', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        next(reader)
+
+        for row in reader:
+            try:
+                metadata = {
+                    'track_name': row[3],
+                    'artists': row[1],
+                    'album_name': row[2],
+                    'popularity': float(row[4]),
+                    'danceability': float(row[7]),
+                    'energy': float(row[8]),
+                    'valence': float(row[16]),
+                    'tempo': float(row[17]),
+                    'loudness': float(row[9]),
+                    'acousticness': float(row[11]),
+                    'instrumentalness': float(row[12])
+                }
+                track_name = metadata['track_name']
+                graph.add_vertex(track_name, metadata)
+                songs.append(track_name)
+            except (IndexError, ValueError):
+                continue
+
+    for i in range(len(songs)):
+        song1 = songs[i]
+        if song1 not in graph.get_all_vertices():
+            continue
+
+        similarities = []
+        for j in range(i + 1, len(songs)):
+            song2 = songs[j]
+            if song2 not in graph.get_all_vertices():
+                continue
+
+            similarity = graph.get_similarity_score(song1, song2)
+            if similarity > 0.3:  # Threshold
+                similarities.append((song2, similarity))
+
+        # Keep top 20 most similar songs
+        similarities.sort(key=lambda x: -x[1])
+        for song2, similarity in similarities[:20]:
+            graph.add_edge(song1, song2, similarity)
+
+    return graph
+
+
+graph = load_graph('data/spotify_songs_smaller.csv')
 
 while running:
 
@@ -145,6 +147,7 @@ while running:
         start_button = pygame.draw.rect(screen, (44, 201, 76), (window_x // 2 - window_x*0.11, window_y // 2, 250, 50), 0)
         start_button_text = SUBTITLE_FONT.render("START", True, (255,255,255))
         screen.blit(start_button_text, (window_x // 2 - window_x*0.052, window_y // 2 + window_y*0.008))
+
 
     elif current == "recommender":
         # displaying question
