@@ -1,4 +1,3 @@
-
 import csv
 import math
 from typing import Any, Dict, List, Optional, Tuple
@@ -120,11 +119,6 @@ class WeightedGraph:
             'score': data['score']
         } for _, data in sorted_scores[:limit]]
 
-    @property
-    def vertices(self):
-        """Public read-only access to vertices."""
-        return self._vertices
-
 
 def load_graph(songs_file: str) -> WeightedGraph:
     """Load song data and build similarity graph."""
@@ -159,16 +153,16 @@ def load_graph(songs_file: str) -> WeightedGraph:
     # Build similarity edges more efficiently
     for i in range(len(songs)):
         song1 = songs[i]
-        if song1 not in graph.vertices:
+        if song1 not in graph._vertices:
             continue
 
         similarities = []
         for j in range(i + 1, len(songs)):
             song2 = songs[j]
-            if song2 not in graph.vertices:
+            if song2 not in graph._vertices:
                 continue
 
-            similarity = graph.vertices[song1].similarity_score(graph.vertices[song2])
+            similarity = graph._vertices[song1].similarity_score(graph._vertices[song2])
             if similarity > 0.3:  # Threshold
                 similarities.append((song2, similarity))
 
