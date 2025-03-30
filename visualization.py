@@ -14,8 +14,6 @@ clock = pygame.time.Clock()
 running = True
 user_input_active = False
 user_input_text = ''
-question_index = 0
-question_list = ["Question 1", "Question 2", "Question 3"]
 
 # different fonts
 TITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", 90)
@@ -32,6 +30,8 @@ song_list = ["Comedy", "Ghost - Acoustic", "To Begin Again", "Can't Help Falling
 song_names = []
 recommendations = []
 dropdown_menu = []
+limit_menu = []
+rec_limit = None
 
 def load_graph(songs_file: str) -> SongGraph:
     """Load song data using only essential features for similarity."""
@@ -89,10 +89,7 @@ while running:
                 current = "recommender"
             # elif user_input and user_input.collidepoint(event.pos) and current == "recommender":
             #     user_input_active = True
-            # elif test_button and test_button.collidepoint(event.pos) and current == "recommender":
-            #     song_names = ["Comedy"]
             elif current == "recommender":
-
                 for option in range(len(dropdown_menu)):
                     if dropdown_menu[option].collidepoint(event.pos):
                         # print(dropdown_menu)
@@ -100,14 +97,22 @@ while running:
                         song_names.append(song_list[option])
 
                 if input_enter and input_enter.collidepoint(event.pos):
+                    current = "limit"
 
-                    # Get recommendations
+            elif current == "limit":
+                for limit in range(len(limit_menu)):
+                    if limit_menu[limit].collidepoint(event.pos):
+                        rec_limit = limit
+
+                # Get recommendations
+                if rec_limit is not None:
                     recommendations = graph.recommend_songs(
                         [graph.find_song_id(name) for name in song_names],
-                        3
+                        rec_limit
                     )
 
-                    current = "recommendations"
+                current = "recommendations"
+
 
 
         # # typing text
@@ -131,7 +136,7 @@ while running:
 
     elif current == "recommender":
         # displaying question
-        question_text = SUBTITLE_FONT.render(question_list[question_index], True, (255,255,255))
+        question_text = SUBTITLE_FONT.render("From the following list below, select some songs that you like.", True, (255,255,255))
         screen.blit(question_text, (window_x // 2 - title_x/6, 200))
 
         # # user input
@@ -152,18 +157,25 @@ while running:
             if dropdown_option not in dropdown_menu:
                 dropdown_menu.append(dropdown_option)
 
-        # # test button
-        # test_button = pygame.draw.rect(screen, (255,255,255), (window_x // 2- title_x/3, window_y // 2 + 400, 500, 100), 0)
-        # test_text = SUBTITLE_FONT.render("IDK", True, (0,0,0))
-        # screen.blit(test_text, (window_x // 2- title_x/6, window_y // 2 +title_y/13+400))
+    elif current == "limit":
+        question_text = SUBTITLE_FONT.render("Choose the number of recommendations you want from 1-10", True,
+                                             (255, 255, 255))
+        screen.blit(question_text, (window_x // 2 - title_x / 6, 200))
 
+        for i in range(10):
+            num_recs = pygame.draw.rect(screen, (255,255,255), (10 + (125*i), window_y // 2, 100, 100), 0)
+            num_recs_text = SUBTITLE_FONT.render(f"{i}", True, (0,0,0))
+            screen.blit(num_recs_text, (10 + (125*i), window_y // 2))
 
+            if num_recs not in limit_menu:
+                limit_menu.append(num_recs)
 
     elif current == "recommendations":
         for i, rec in enumerate(recommendations, 1):
 
             question_text = SUBTITLE_FONT.render(f"{i}. {rec['track']} by {rec['artist']} ({rec['score']:.2f})", True, (255, 255, 255))
             screen.blit(question_text, (window_x // 2 - title_x / 6, 200+(100*i)))
+
 
 
     # flip() the display to put your work on screen
