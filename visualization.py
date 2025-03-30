@@ -1,10 +1,10 @@
 import pygame
 import csv
-from recommender import SongGraph
+from recommender import WeightedGraph
 
 # pygame setup
 pygame.init()
-screen = pygame.display.set_mode()
+screen = pygame.display.set_mode((1280, 720))
 current = "home"
 window_y = screen.get_height()
 window_x = screen.get_width()
@@ -33,9 +33,9 @@ dropdown_menu = []
 limit_menu = []
 rec_limit = None
 
-def load_graph(songs_file: str) -> SongGraph:
+def load_graph(songs_file: str) -> WeightedGraph:
     """Load song data using only essential features for similarity."""
-    graph = SongGraph()
+    graph = WeightedGraph()
 
     with open(songs_file, 'r', encoding='utf-8') as file:
         reader = csv.reader(file)
