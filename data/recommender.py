@@ -1,7 +1,6 @@
 import csv
 import math
 from typing import Any, Dict, List, Optional, Tuple
-import pickle
 
 
 class _WeightedVertex:
