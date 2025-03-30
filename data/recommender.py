@@ -199,9 +199,9 @@ def get_recommendation_count() -> int:
             count = int(input("How many recommendations? (1-10)\n> ").strip())
             if 1 <= count <= 10:
                 return count
-            print("Please enter between 1-10")
+            print("Please enter a number between 1-10.")
         except ValueError:
-            print("Please enter a valid number")
+            print("Please enter a valid number.")
 
 
 def get_song_input() -> list[str]:
