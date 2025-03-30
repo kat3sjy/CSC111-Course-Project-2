@@ -8,8 +8,8 @@ screen = pygame.display.set_mode((1280, 720))
 current = "home"
 window_y = screen.get_height()
 window_x = screen.get_width()
-title_x = 750
-title_y = 150
+# title_x = 750
+# title_y = 150
 clock = pygame.time.Clock()
 running = True
 user_input_active = False
@@ -18,18 +18,22 @@ user_input_text = ''
 # different fonts
 TITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", int(window_y * 0.06))
 SUBTITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", int(window_y * 0.04))
-PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", 25)
-BIG_PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", 60)
+PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", int(window_y * 0.03))
+BIG_PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", int(window_y * 0.04))
 
 start_button = None
 user_input = None
 input_enter = None
 test_button = None
+limit_enter = None
 
-song_list = ["Comedy", "Ghost - Acoustic", "To Begin Again", "Can't Help Falling In Love", "Hold On"]
+song_list = ["Comedy", "Ghost - Acoustic", "To Begin Again", "Can't Help Falling In Love", "Hold On", "Hold On",
+             "Hold On"]
 song_names = []
 recommendations = []
 dropdown_menu = []
+dropdown_selected = [0, 0, 0, 0, 0, 0, 0]
+limit_selected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 limit_menu = []
 rec_limit = None
 
@@ -109,6 +113,7 @@ while running:
                         # print(dropdown_menu)
                         # print("option: ", option)
                         song_names.append(song_list[option])
+                        dropdown_selected[option] += 1
 
                 if input_enter and input_enter.collidepoint(event.pos):
                     current = "limit"
@@ -116,18 +121,20 @@ while running:
             elif current == "limit":
                 for limit in range(len(limit_menu)):
                     if limit_menu[limit].collidepoint(event.pos):
-                        rec_limit = limit
+                        if limit_selected[limit] % 2 != 0:
+                            limit_selected[limit] += 1
+                        elif any({x % 2 != 0 for x in limit_selected}):
+                            pass
+                        else:
+                            limit_selected[limit] += 1
+                            rec_limit = limit + 1
 
-                # Get recommendations
-                if rec_limit is not None:
-                    recommendations = graph.recommend_songs(
-                        [graph.find_song_id(name) for name in song_names],
-                        rec_limit
-                    )
+                if limit_enter and limit_enter.collidepoint(event.pos):
+                    # Get recommendations
+                    if rec_limit is not None:
+                        recommendations = graph.recommend_songs(song_names, rec_limit)
 
-                current = "recommendations"
-
-
+                    current = "recommendations"
 
         # # typing text
         # elif event.type == pygame.KEYDOWN:
@@ -143,55 +150,91 @@ while running:
     if current == "home":
         # title stuff
         title = TITLE_FONT.render("Spotify Recommender System", True, (255, 255, 255))
-        screen.blit(title, (window_x // 2 - window_x*0.28, window_y // 2 - window_y*0.1))
-        start_button = pygame.draw.rect(screen, (44, 201, 76), (window_x // 2 - window_x*0.11, window_y // 2, 250, 50), 0)
-        start_button_text = SUBTITLE_FONT.render("START", True, (255,255,255))
-        screen.blit(start_button_text, (window_x // 2 - window_x*0.052, window_y // 2 + window_y*0.008))
+        screen.blit(title, (window_x // 2 - window_x * 0.28, window_y // 2 - window_y * 0.1))
+        start_button = pygame.draw.rect(screen, (29, 185, 84),
+                                        (window_x // 2 - window_x * 0.11, window_y // 2, 250, 50), 0)
+        start_button_text = SUBTITLE_FONT.render("START", True, (255, 255, 255))
+        screen.blit(start_button_text, (window_x // 2 - window_x * 0.052, window_y // 2 + window_y * 0.008))
 
 
     elif current == "recommender":
         # displaying question
-        question_text = SUBTITLE_FONT.render("From the following list below, select some songs that you like.", True, (255,255,255))
-        screen.blit(question_text, (window_x // 2 - title_x/6, 200))
+        question_text = SUBTITLE_FONT.render("From the following list below, select some songs that you like.", True,
+                                             (255, 255, 255))
+        screen.blit(question_text, (20, 30))
 
         # # user input
-        # user_input = pygame.draw.rect(screen, (44, 201, 76), (window_x // 2 - title_x/3, window_y // 2, 500, 100), 0)
+        # user_input = pygame.draw.rect(screen, (29, 185, 84), (window_x // 2 - title_x/3, window_y // 2, 500, 100), 0)
         # input_text = PARAGRAPH_FONT.render(user_input_text, True, (255,255,255))
         # screen.blit(input_text, (window_x // 2 - title_x/6, window_y // 2 +title_y/13))
 
         # enter button
-        input_enter = pygame.draw.rect(screen, (255,255,255), (window_x // 2 - title_x/3, 400, 500, 100), 0)
-        enter_text = SUBTITLE_FONT.render("ENTER", True, (0,0,0))
-        screen.blit(enter_text, (window_x // 2 - title_x/6, title_y/13+400))
+        input_enter = pygame.draw.rect(screen, (255, 255, 255), (window_x // 2, 670, 250, 50), 0)
+        enter_text = SUBTITLE_FONT.render("ENTER", True, (0, 0, 0))
+        screen.blit(enter_text, (window_x // 2, 670))
 
-        for i in range(5):
-            dropdown_option= pygame.draw.rect(screen, (255,255,255), (window_x // 2- title_x/3, window_y // 2 + (125*i), 2000, 100), 0)
-            dropdown_text = SUBTITLE_FONT.render(f"{song_list[i]}", True, (0,0,0))
-            screen.blit(dropdown_text, (window_x // 2 - title_x / 6, window_y // 2 + title_y / 13 + (125*i)))
+        # song options to choose from
+        for i in range(7):
+            # song options
+            dropdown_option = pygame.draw.rect(screen, (255, 255, 255), (20, 100 + (75 * i), 800, 60), 1)
+            dropdown_text = PARAGRAPH_FONT.render(f"{song_list[i]}", True, (255, 255, 255))
+            screen.blit(dropdown_text, (90, 117 + (75 * i)))
+
+            # checkbox (circle)
+            if dropdown_selected[i] % 2 == 0:
+                checkbox_colour = (255, 255, 255)
+                checkbox_width = 1
+                if song_list[i] in song_names:
+                    song_names.remove(song_list[i])
+            else:
+                checkbox_colour = (29, 185, 84)
+                checkbox_width = 0
+
+            check_button = pygame.draw.circle(screen, checkbox_colour, (55, 130 + (75 * i)), 10, checkbox_width)
 
             if dropdown_option not in dropdown_menu:
                 dropdown_menu.append(dropdown_option)
 
+
     elif current == "limit":
         question_text = SUBTITLE_FONT.render("Choose the number of recommendations you want from 1-10", True,
                                              (255, 255, 255))
-        screen.blit(question_text, (window_x // 2 - title_x / 6, 200))
+        screen.blit(question_text, (160, 230))
 
         for i in range(10):
-            num_recs = pygame.draw.rect(screen, (255,255,255), (10 + (125*i), window_y // 2, 100, 100), 0)
-            num_recs_text = SUBTITLE_FONT.render(f"{i}", True, (0,0,0))
-            screen.blit(num_recs_text, (10 + (125*i), window_y // 2))
+
+            if limit_selected[i] % 2 != 0:
+                limit_colour = (29, 185, 84)
+                limit_width = 0
+            else:
+                limit_colour = (255, 255, 255)
+                limit_width = 1
+
+            num_recs = pygame.draw.rect(screen, limit_colour, (70 + (114 * i), window_y // 2 - 50, 100, 100),
+                                        limit_width)
+            num_recs_text = SUBTITLE_FONT.render(f"{i + 1}", True, (255, 255, 255))
+            if i < 10:
+                screen.blit(num_recs_text, (108 + (114 * i), window_y // 2 - 20))
+            else:
+                screen.blit(num_recs_text, (100 + (114 * i), window_y // 2 - 20))
 
             if num_recs not in limit_menu:
                 limit_menu.append(num_recs)
 
+        limit_enter = pygame.draw.rect(screen, (29, 185, 84), (window_x // 2 - 125, 460, 250, 50), 0)
+        limit_enter_text = SUBTITLE_FONT.render("ENTER", True, (255, 255, 255))
+        screen.blit(limit_enter_text, (window_x // 2 - 55, 467))
+
     elif current == "recommendations":
+        question_text = TITLE_FONT.render("Song Recommendations:", True,
+                                          (255, 255, 255))
+        screen.blit(question_text, (80, 100))
+
         for i, rec in enumerate(recommendations, 1):
-
-            question_text = SUBTITLE_FONT.render(f"{i}. {rec['track']} by {rec['artist']} ({rec['score']:.2f})", True, (255, 255, 255))
-            screen.blit(question_text, (window_x // 2 - title_x / 6, 200+(100*i)))
-
-
+            question_text = BIG_PARAGRAPH_FONT.render(f"{i}. {rec['track']} by {rec['artist']} ({rec['score']:.2f})",
+                                                      True,
+                                                      (255, 255, 255))
+            screen.blit(question_text, (80, 140 + (50 * i)))
 
     # flip() the display to put your work on screen
     pygame.display.flip()
@@ -200,9 +243,7 @@ while running:
 
 pygame.quit()
 
-
 # import python_ta
 # python_ta.check_all(config={
 #     'max-line-length': 120,
 # })
-
