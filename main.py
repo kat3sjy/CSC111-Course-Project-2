@@ -16,6 +16,8 @@ This file is Copyright (c) 2025 Cindy Yang, Kate Shen, Kristen Wong, Sara Kopilo
 from __future__ import annotations
 import csv
 from typing import Any
+import recommender
+# import visualization
 
 columns_to_keep = [
     'track_id', 'artists', 'popularity', 'explicit', 'danceability', 'energy',
@@ -46,10 +48,10 @@ with open('data/spotify_songs.csv', 'r') as file:
 
 
 if __name__ == '__main__':
+    recommender.main()
+
     import doctest
-
     doctest.testmod()
-
     import python_ta
 
     python_ta.check_all(config={
