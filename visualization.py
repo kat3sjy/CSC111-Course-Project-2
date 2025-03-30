@@ -98,7 +98,7 @@ while running:
                     [graph.find_song_id(name) for name in song_names],
                     3
                 )
-                # # Display results
+                # Display results
                 # print("\nRecommended Songs:")
                 # for i, rec in enumerate(recommendations, 1):
                 #     print(f"{i}. {rec['track']} by {rec['artist']} ({rec['score']:.2f})")
