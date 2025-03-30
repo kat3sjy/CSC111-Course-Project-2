@@ -1,11 +1,43 @@
+"""CSC111 Winter 2025 Project: Spotify Song Recommendation System
+
+This Python module contains the classes used to represent our domain and
+functions for the computation of our data.
+
+Copyright and Usage Information
+===============================
+
+This file is provided solely for the personal and private use of students
+taking CSC111 at the University of Toronto St. George campus. All forms of
+distribution of this code, whether as given or with any changes, are
+expressly prohibited. For more information on copyright for CSC111 materials,
+please consult our Course Syllabus.
+
+This file is Copyright (c) 2025 Cindy Yang, Kate Shen, Kristen Wong, Sara Kopilovic.
+"""
+from __future__ import annotations
 import csv
 import math
 from typing import Any, Dict, List, Optional, Tuple
-# Comment
+
 
 class _WeightedVertex:
-    """A vertex in a weighted song similarity graph."""
+    """A vertex in a weighted song similarity graph, used to represent a song.
 
+    Each vertex item is a song name, represented as a string.
+
+    Instance Attributes:
+        - item: The data stored in this vertex, representing a song.
+        - neighbours: The vertices that are adjacent to this vertex.
+        - feature_configuration: A tuple that defines the audio features that are considered
+                                 for every song and their respectives weights. It uses the format:
+                                 (feature_name, weight, min_value. max_value)
+
+    Representation Invariants:
+        - self not in self.neighbours
+        - all(self in u.neighbours for u in self.neighbours)
+    """
+    item: str
+    neighbours: dict[_WeightedVertex, float]
     feature_configuration = [
         # (field_name, weight, min_value, max_value)
         ('danceability', 0.25, 0.0, 1.0),
@@ -18,12 +50,16 @@ class _WeightedVertex:
     ]
 
     def __init__(self, item: Any, metadata: Optional[dict] = None) -> None:
+        """Initialize a new vertex with the given.
+
+        This vertex is initialized with no neighbours.
+        """
         self.item = item
         self.metadata = metadata if metadata is not None else {}
         self.neighbours = {}
 
     def similarity_score(self, other: '_WeightedVertex') -> float:
-        """Calculate weighted similarity between songs."""
+        """Calculate weighted similarity between this vertex and other."""
         dot_product = 0.0
         mag1 = 0.0
         mag2 = 0.0
@@ -51,28 +87,39 @@ class _WeightedVertex:
 
 
 class WeightedGraph:
-    """A graph representing songs and their similarities."""
+    """A weighted graph used to represent songs and their similarities."""
+    # Private Instance Attributes:
+    #     -_vertices:
+    #         A collection of the vertices contained in this graph.
+    #         Maps item to _Vertex object.
+    _vertices: dict[Any, _WeightedVertex]
 
     def __init__(self):
         self._vertices = {}
         self._song_lookup = {}
 
     def add_vertex(self, item: Any, metadata: Optional[dict] = None) -> None:
-        """Add a song vertex to the graph."""
+        """Add a song vertex to the graph.
+
+        The new vertex is not adjacent to any other vertices.
+        Do nothing if the given item is already in this graph.
+        """
         if item not in self._vertices:
             self._vertices[item] = _WeightedVertex(item, metadata)
-            if metadata:
-                song_key = metadata['track_name'].lower()
-                self._song_lookup[song_key] = item
 
     def add_edge(self, item1: Any, item2: Any, weight: Optional[float] = None) -> None:
-        """Add a weighted edge between two songs."""
+        """Add a weighted edge between two songs, item1 and item2, and the given weight.
+
+        Raise a ValueError if item1 or item2 do not appear as vertices in this graph.
+        """
         if item1 in self._vertices and item2 in self._vertices:
             v1 = self._vertices[item1]
             v2 = self._vertices[item2]
             weight = weight if weight is not None else v1.similarity_score(v2)
             v1.neighbours[v2] = weight
             v2.neighbours[v1] = weight
+        else:
+            raise ValueError
 
     def get_all_vertices(self) -> set:
         """Return a set of all vertex items in this weighted graph."""
@@ -87,8 +134,12 @@ class WeightedGraph:
         return v1.similarity_score(v2)
 
     def find_song_id(self, song_name: str) -> Optional[str]:
-        """Find a song ID by name (case-insensitive)."""
-        return self._song_lookup.get(song_name.lower().strip())
+        """Find a song's vertex key (track name) by its name (case-insensitive)."""
+        target_name = song_name.lower().strip()
+        for vertex_key, vertex in self._vertices.items():
+            if vertex.metadata.get('track_name', '').lower() == target_name:
+                return vertex_key  # Return the vertex's key (track name)
+        return None  # Song not found
 
     def recommend_songs(self, song_names: List[str], limit: int = 5) -> List[Dict]:
         """Generate recommendations based on multiple seed songs."""
@@ -140,7 +191,12 @@ class WeightedGraph:
 
 
 def load_graph(songs_file: str) -> WeightedGraph:
-    """Load song data and build similarity graph."""
+    """Load song data and build similarity graph.
+
+    Preconditions:
+        - songs_file is the path to a CSV file corresponding to the song data format described
+          in the written report
+    """
     graph = WeightedGraph()
     songs = []
 
