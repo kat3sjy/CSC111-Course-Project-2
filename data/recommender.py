@@ -246,3 +246,12 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+    import python_ta
+
+    python_ta.check_all(config={
+        'extra-imports': ['csv', 'math'],  # external modules used
+        'allowed-io': ['main', 'load_graph', 'get_song_input', 'get_recommendation_count'],
+        # functions using print/input
+        'max-line-length': 120
+    })
