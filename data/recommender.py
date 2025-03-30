@@ -1,9 +1,21 @@
 import csv
-from typing import Any, Union, Optional, Dict, List
+import math
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class _WeightedVertex:
     """A vertex in a weighted song similarity graph."""
+
+    feature_configuration = [
+        # (field_name, weight, min_value, max_value)
+        ('danceability', 0.25, 0.0, 1.0),
+        ('energy', 0.25, 0.0, 1.0),
+        ('valence', 0.15, 0.0, 1.0),
+        ('tempo', 0.1, 50, 200),
+        ('loudness', 0.1, -30, 0),
+        ('acousticness', 0.1, 0.0, 1.0),
+        ('instrumentalness', 0.05, 0.0, 1.0)
+    ]
 
     def __init__(self, item: Any, metadata: Optional[dict] = None) -> None:
         self.item = item
@@ -11,41 +23,50 @@ class _WeightedVertex:
         self.neighbours = {}
 
     def similarity_score(self, other: '_WeightedVertex') -> float:
-        """Calculate similarity using only key audio features."""
-        # Normalize tempo (0-250 → 0-1)
-        self_tempo = self.metadata['tempo'] / 250
-        other_tempo = other.metadata['tempo'] / 250
+        """Calculate weighted similarity between songs."""
+        dot_product = 0.0
+        mag1 = 0.0
+        mag2 = 0.0
 
-        # Calculate differences
-        dance_diff = abs(self.metadata['danceability'] - other.metadata['danceability'])
-        energy_diff = abs(self.metadata['energy'] - other.metadata['energy'])
-        valence_diff = abs(self.metadata['valence'] - other.metadata['valence'])
-        tempo_diff = abs(self_tempo - other_tempo)
+        for feature, weight, min_val, max_val in self.feature_configuration:
+            # Clip values to expected ranges
+            val1 = max(min(self.metadata[feature], max_val), min_val)
+            val2 = max(min(other.metadata[feature], max_val), min_val)
 
-        # Weighted similarity (1 - average difference)
-        avg_diff = (dance_diff * 0.4 + energy_diff * 0.3 +
-                    valence_diff * 0.2 + tempo_diff * 0.1)
-        return 1 - avg_diff  # Convert to similarity (1 = identical)
+            # Min-max normalization with weighting
+            norm1 = ((val1 - min_val) / (max_val - min_val)) * weight
+            norm2 = ((val2 - min_val) / (max_val - min_val)) * weight
+
+            dot_product += norm1 * norm2
+            mag1 += norm1 ** 2
+            mag2 += norm2 ** 2
+
+        if mag1 == 0 or mag2 == 0:
+            return 0.0
+
+        raw_score = dot_product / (math.sqrt(mag1) * math.sqrt(mag2))
+
+        # Apply non-linear scaling to better distribute scores
+        return raw_score ** 2
 
 
-class SongGraph:
+class WeightedGraph:
     """A graph representing songs and their similarities."""
 
     def __init__(self):
         self._vertices = {}
-        self._song_lookup = {}  # For case-insensitive song name lookup
+        self._song_lookup = {}
 
     def add_vertex(self, item: Any, metadata: Optional[dict] = None) -> None:
-        """ Add a new song (vertex) to the graph"""
+        """Add a song vertex to the graph."""
         if item not in self._vertices:
             self._vertices[item] = _WeightedVertex(item, metadata)
-            # Create lookup by name
             if metadata:
                 song_key = metadata['track_name'].lower()
                 self._song_lookup[song_key] = item
 
     def add_edge(self, item1: Any, item2: Any, weight: Optional[float] = None) -> None:
-        """Create a weighted edge between two existing songs from the data"""
+        """Add a weighted edge between two songs."""
         if item1 in self._vertices and item2 in self._vertices:
             v1 = self._vertices[item1]
             v2 = self._vertices[item2]
@@ -54,108 +75,115 @@ class SongGraph:
             v2.neighbours[v1] = weight
 
     def find_song_id(self, song_name: str) -> Optional[str]:
-        """Find a song ID by name."""
-        song_name = song_name.lower().strip()
+        """Find a song ID by name (case-insensitive)."""
+        return self._song_lookup.get(song_name.lower().strip())
 
-        if song_name in self._song_lookup:
-            return self._song_lookup[song_name]
-
-        matches = [k for k in self._song_lookup if song_name in k]
-        if len(matches) == 1:
-            return self._song_lookup[matches[0]]
-
-        return None
-
-    def recommend_songs(self, song_names: List[str], limit: int = 5) -> List[Dict]:
-        """Generate a list of song recommendation from the list of song names"""
-        # Convert song names to IDs
-        song_ids = []
-        for name in song_names:
-            song_id = self.find_song_id(name)
-            if song_id:
-                song_ids.append(song_id)
-            # Assume all songs are found in dataset
-            # else:
-            #     print(f"Song '{name}' not found in dataset")
-
+    def recommend_songs(self, song_ids: List[str], limit: int = 5) -> List[Dict]:
+        """Generate song recommendations based on similarity."""
         if not song_ids:
             return []
 
-        # Calculate recommendations
         scores = {}
         for song_id in song_ids:
+            if song_id not in self._vertices:
+                continue
+
             seed_vertex = self._vertices[song_id]
             for neighbor, weight in seed_vertex.neighbours.items():
                 if neighbor.item in song_ids:
                     continue
+
                 if neighbor.item in scores:
                     scores[neighbor.item]['score'] += weight
+                    scores[neighbor.item]['count'] += 1
                 else:
-                    scores[neighbor.item] = {'score': weight, 'metadata': neighbor.metadata}
+                    scores[neighbor.item] = {
+                        'score': weight,
+                        'count': 1,
+                        'metadata': neighbor.metadata
+                    }
 
-        # Sort by score and popularity
+        # Calculate average score and sort
         sorted_scores = sorted(
-            scores.items(),
+            ((k, {
+                'score': v['score'] / v['count'],
+                'metadata': v['metadata']
+            }) for k, v in scores.items()),
             key=lambda x: (-x[1]['score'], -x[1]['metadata'].get('popularity', 0))
         )
 
-        # Prepare clean recommendations
-        recommendations = []
-        for track_id, data in sorted_scores[:limit]:
-            rec = {
-                'track': data['metadata']['track_name'],
-                'artist': data['metadata']['artists'],
-                'album': data['metadata']['album_name'],
-                'score': data['score'] / len(song_ids)
-            }
-            recommendations.append(rec)
-
-        return recommendations
+        return [{
+            'track': data['metadata']['track_name'],
+            'artist': data['metadata']['artists'],
+            'album': data['metadata']['album_name'],
+            'score': data['score']
+        } for _, data in sorted_scores[:limit]]
 
 
-def load_graph(songs_file: str) -> SongGraph:
-    """Load song data using only essential features for similarity."""
-    graph = SongGraph()
+def load_graph(songs_file: str) -> WeightedGraph:
+    """Load song data and build similarity graph."""
+    graph = WeightedGraph()
+    songs = []
 
     with open(songs_file, 'r', encoding='utf-8') as file:
         reader = csv.reader(file)
-        headers = next(reader)  # Skip header row
+        headers = next(reader)
 
         for row in reader:
-            # Only store features we'll use for similarity
-            metadata = {
-                'track_name': row[3],  # track_name
-                'artists': row[1],  # artists
-                'danceability': float(row[7]),  # danceability
-                'energy': float(row[8]),  # energy
-                'valence': float(row[16]),  # valence
-                'tempo': float(row[17])  # tempo
-            }
+            try:
+                metadata = {
+                    'track_name': row[3],
+                    'artists': row[1],
+                    'album_name': row[2],
+                    'popularity': float(row[4]),
+                    'danceability': float(row[7]),
+                    'energy': float(row[8]),
+                    'valence': float(row[16]),
+                    'tempo': float(row[17]),
+                    'loudness': float(row[9]),
+                    'acousticness': float(row[11]),
+                    'instrumentalness': float(row[12])
+                }
+                track_name = metadata['track_name']
+                graph.add_vertex(track_name, metadata)
+                songs.append(track_name)
+            except (IndexError, ValueError):
+                continue
 
-            graph.add_vertex(metadata['track_name'], metadata)
-
-    # Create similarity edges
-    songs = list(graph._vertices.values())
+    # Build similarity edges more efficiently
     for i in range(len(songs)):
+        song1 = songs[i]
+        if song1 not in graph._vertices:
+            continue
+
+        similarities = []
         for j in range(i + 1, len(songs)):
-            similarity = songs[i].similarity_score(songs[j])
-            if similarity > 0.3:
-                graph.add_edge(songs[i].item, songs[j].item, similarity)
+            song2 = songs[j]
+            if song2 not in graph._vertices:
+                continue
+
+            similarity = graph._vertices[song1].similarity_score(graph._vertices[song2])
+            if similarity > 0.3:  # Threshold
+                similarities.append((song2, similarity))
+
+        # Keep top 20 most similar songs
+        similarities.sort(key=lambda x: -x[1])
+        for song2, similarity in similarities[:20]:
+            graph.add_edge(song1, song2, similarity)
 
     return graph
 
 
 def get_recommendation_count() -> int:
-    """Get number of recommendations with proper validation."""
+    """Get validated number of recommendations."""
     while True:
         try:
-            print("How many recommendations would you like? (1-10)")
-            limit = int(input("> ").strip())
-            if 1 <= limit <= 10:
-                return limit
-            print("Please enter a number between 1 and 10.")
+            count = int(input("How many recommendations? (1-10)\n> ").strip())
+            if 1 <= count <= 10:
+                return count
+            print("Please enter between 1-10")
         except ValueError:
-            print("Please enter a valid number.")
+            print("Please enter a valid number")
 
 
 def get_song_input() -> list[str]:
@@ -167,27 +195,20 @@ def get_song_input() -> list[str]:
 
 def main():
     print("Spotify Song Recommender")
-    graph = load_graph('spotify_songs_small.csv')
+    print("Loading song data...")
+    graph = load_graph('spotify_songs_smaller.csv')
 
     while True:
-        # Get song names (no validation)
-        song_names = get_song_input()
-        if not song_names:
+        song_ids = get_song_input()
+        if not song_ids:
             break
 
-        # Get recommendation count
         limit = get_recommendation_count()
+        recommendations = graph.recommend_songs(song_ids, limit)
 
-        # Get recommendations
-        recommendations = graph.recommend_songs(
-            [graph.find_song_id(name) for name in song_names],
-            limit
-        )
-
-        # Display results
         print("\nRecommended Songs:")
         for i, rec in enumerate(recommendations, 1):
-            print(f"{i}. {rec['track']} by {rec['artist']} ({rec['score']:.2f})")
+            print(f"{i}. {rec['track']} by {rec['artist']} (score: {rec['score']:.3f})")
 
         print("\nTry another search? (y/n)")
         if input("> ").lower() != 'y':
