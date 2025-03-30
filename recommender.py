@@ -1,7 +1,6 @@
 import csv
 from typing import Any, Union, Optional, Dict, List
 
-# random comment
 
 class _WeightedVertex:
     """A vertex in a weighted song similarity graph."""

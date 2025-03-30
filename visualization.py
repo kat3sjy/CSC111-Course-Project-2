@@ -1,5 +1,6 @@
-# Example file showing a basic pygame "game loop"
 import pygame
+import csv
+from recommender import SongGraph
 
 # pygame setup
 pygame.init()
@@ -25,8 +26,52 @@ BIG_PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf
 start_button = None
 user_input = None
 input_enter = None
+test_button = None
 
+song_names = ""
+recommendations = []
 
+def load_graph(songs_file: str) -> SongGraph:
+    """Load song data using only essential features for similarity."""
+    graph = SongGraph()
+
+    with open(songs_file, 'r', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        headers = next(reader)  # Skip header row
+
+        for row in reader:
+            # Only store features we'll use for similarity
+            metadata = {
+                'track_name': row[3],  # track_name
+                'artists': row[1],  # artists
+                'album_name': row[2],  # album name
+                'danceability': float(row[7]),  # danceability
+                'energy': float(row[8]),  # energy
+                'valence': float(row[16]),  # valence
+                'tempo': float(row[17])  # tempo
+            }
+
+            graph.add_vertex(metadata['track_name'], metadata)
+
+    # Create similarity edges
+    songs = list(graph._vertices.values())
+    for i, song1 in enumerate(songs):
+        similarities = []
+        for j, song2 in enumerate(songs):
+            if i == j:
+                continue
+            similarity = song1.similarity_score(song2)
+            similarities.append((song2, similarity))
+
+        # Sort by similarity and keep top 20
+        similarities.sort(key=lambda x: -x[1])
+        for song2, similarity in similarities[:20]:
+            if similarity > 0.3:  # Minimum similarity threshold
+                graph.add_edge(song1.item, song2.item, similarity)
+
+    return graph
+
+graph = load_graph('data/spotify_songs_smaller.csv')
 
 while running:
     # poll for events
@@ -44,12 +89,23 @@ while running:
                 current = "recommender"
             elif user_input and user_input.collidepoint(event.pos) and current == "recommender":
                 user_input_active = True
+            elif test_button and test_button.collidepoint(event.pos) and current == "recommender":
+                song_names = ["Comedy"]
             elif input_enter and input_enter.collidepoint(event.pos) and current == "recommender":
-                user_input_text = ""
-                if question_index < len(question_list) - 1:
-                    question_index += 1
-                else:
-                    current = "recommendations"
+
+                # Get recommendations
+                recommendations = graph.recommend_songs(
+                    [graph.find_song_id(name) for name in song_names],
+                    3
+                )
+                # # Display results
+                # print("\nRecommended Songs:")
+                # for i, rec in enumerate(recommendations, 1):
+                #     print(f"{i}. {rec['track']} by {rec['artist']} ({rec['score']:.2f})")
+
+                current = "recommendations"
+
+
         # typing text
         elif event.type == pygame.KEYDOWN:
                 if user_input_active:
@@ -84,9 +140,18 @@ while running:
         enter_text = SUBTITLE_FONT.render("ENTER", True, (0,0,0))
         screen.blit(enter_text, (window_x // 2 - title_x/6, window_y // 2 +title_y/13+200))
 
+        # test button
+        test_button = pygame.draw.rect(screen, (255,255,255), (window_x // 2, window_y // 2 + 400, 500, 100), 0)
+        test_text = SUBTITLE_FONT.render("IDK", True, (0,0,0))
+        screen.blit(test_text, (window_x // 2, window_y // 2 +title_y/13+400))
+
+
+
     elif current == "recommendations":
-        question_text = SUBTITLE_FONT.render("insert random recs", True, (255, 255, 255))
-        screen.blit(question_text, (window_x // 2 - title_x / 6, 200))
+        for i, rec in enumerate(recommendations, 1):
+
+            question_text = SUBTITLE_FONT.render(f"{i}. {rec['track']} by {rec['artist']} ({rec['score']:.2f})", True, (255, 255, 255))
+            screen.blit(question_text, (window_x // 2 - title_x / 6, 200+(100*i)))
 
 
     # flip() the display to put your work on screen
