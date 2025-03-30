@@ -169,7 +169,6 @@ def load_graph(songs_file: str) -> WeightedGraph:
             except (IndexError, ValueError):
                 continue
 
-    # Build similarity edges more efficiently
     for i in range(len(songs)):
         song1 = songs[i]
         if song1 not in graph.get_all_vertices():
