@@ -205,6 +205,9 @@ def get_song_input() -> list[str]:
     return [] if user_input.lower() == 'q' else [name.strip() for name in user_input.split(',')]
 
 
+# Note: This wouldn't be needed after adding GUI which would take care of all user inputs
+# User inputs 1) Songs from dropdown (preferably can input multiple), 2) Number of recs they want
+# Generates a list of songs (song, artist, album name, genre)
 def main():
     print("Spotify Song Recommender")
     print("Loading song data...")
