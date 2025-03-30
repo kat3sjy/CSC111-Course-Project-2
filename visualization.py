@@ -28,8 +28,10 @@ user_input = None
 input_enter = None
 test_button = None
 
-song_names = ""
+song_list = ["Comedy", "Ghost - Acoustic", "To Begin Again", "Can't Help Falling In Love", "Hold On"]
+song_names = []
 recommendations = []
+dropdown_menu = []
 
 def load_graph(songs_file: str) -> SongGraph:
     """Load song data using only essential features for similarity."""
@@ -74,8 +76,6 @@ def load_graph(songs_file: str) -> SongGraph:
 graph = load_graph('data/spotify_songs_smaller.csv')
 
 while running:
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
 
     mouse = pygame.mouse.get_pos()
 
@@ -87,32 +87,36 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if start_button and start_button.collidepoint(event.pos) and current == "home":
                 current = "recommender"
-            elif user_input and user_input.collidepoint(event.pos) and current == "recommender":
-                user_input_active = True
-            elif test_button and test_button.collidepoint(event.pos) and current == "recommender":
-                song_names = ["Comedy"]
-            elif input_enter and input_enter.collidepoint(event.pos) and current == "recommender":
+            # elif user_input and user_input.collidepoint(event.pos) and current == "recommender":
+            #     user_input_active = True
+            # elif test_button and test_button.collidepoint(event.pos) and current == "recommender":
+            #     song_names = ["Comedy"]
+            elif current == "recommender":
 
-                # Get recommendations
-                recommendations = graph.recommend_songs(
-                    [graph.find_song_id(name) for name in song_names],
-                    3
-                )
-                # Display results
-                # print("\nRecommended Songs:")
-                # for i, rec in enumerate(recommendations, 1):
-                #     print(f"{i}. {rec['track']} by {rec['artist']} ({rec['score']:.2f})")
+                for option in range(len(dropdown_menu)):
+                    if dropdown_menu[option].collidepoint(event.pos):
+                        # print(dropdown_menu)
+                        # print("option: ", option)
+                        song_names.append(song_list[option])
 
-                current = "recommendations"
+                if input_enter and input_enter.collidepoint(event.pos):
+
+                    # Get recommendations
+                    recommendations = graph.recommend_songs(
+                        [graph.find_song_id(name) for name in song_names],
+                        3
+                    )
+
+                    current = "recommendations"
 
 
-        # typing text
-        elif event.type == pygame.KEYDOWN:
-                if user_input_active:
-                    if event.key == pygame.K_BACKSPACE:
-                        user_input_text = user_input_text[:-1]
-                    else:
-                        user_input_text += event.unicode
+        # # typing text
+        # elif event.type == pygame.KEYDOWN:
+        #         if user_input_active:
+        #             if event.key == pygame.K_BACKSPACE:
+        #                 user_input_text = user_input_text[:-1]
+        #             else:
+        #                 user_input_text += event.unicode
 
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("black")
@@ -130,20 +134,28 @@ while running:
         question_text = SUBTITLE_FONT.render(question_list[question_index], True, (255,255,255))
         screen.blit(question_text, (window_x // 2 - title_x/6, 200))
 
-        # user input
-        user_input = pygame.draw.rect(screen, (44, 201, 76), (window_x // 2 - title_x/3, window_y // 2, 500, 100), 0)
-        input_text = PARAGRAPH_FONT.render(user_input_text, True, (255,255,255))
-        screen.blit(input_text, (window_x // 2 - title_x/6, window_y // 2 +title_y/13))
+        # # user input
+        # user_input = pygame.draw.rect(screen, (44, 201, 76), (window_x // 2 - title_x/3, window_y // 2, 500, 100), 0)
+        # input_text = PARAGRAPH_FONT.render(user_input_text, True, (255,255,255))
+        # screen.blit(input_text, (window_x // 2 - title_x/6, window_y // 2 +title_y/13))
 
         # enter button
-        input_enter = pygame.draw.rect(screen, (255,255,255), (window_x // 2 - title_x/3, window_y // 2 + 200, 500, 100), 0)
+        input_enter = pygame.draw.rect(screen, (255,255,255), (window_x // 2 - title_x/3, 400, 500, 100), 0)
         enter_text = SUBTITLE_FONT.render("ENTER", True, (0,0,0))
-        screen.blit(enter_text, (window_x // 2 - title_x/6, window_y // 2 +title_y/13+200))
+        screen.blit(enter_text, (window_x // 2 - title_x/6, title_y/13+400))
 
-        # test button
-        test_button = pygame.draw.rect(screen, (255,255,255), (window_x // 2, window_y // 2 + 400, 500, 100), 0)
-        test_text = SUBTITLE_FONT.render("IDK", True, (0,0,0))
-        screen.blit(test_text, (window_x // 2, window_y // 2 +title_y/13+400))
+        for i in range(5):
+            dropdown_option= pygame.draw.rect(screen, (255,255,255), (window_x // 2- title_x/3, window_y // 2 + (125*i), 2000, 100), 0)
+            dropdown_text = SUBTITLE_FONT.render(f"{song_list[i]}", True, (0,0,0))
+            screen.blit(dropdown_text, (window_x // 2 - title_x / 6, window_y // 2 + title_y / 13 + (125*i)))
+
+            if dropdown_option not in dropdown_menu:
+                dropdown_menu.append(dropdown_option)
+
+        # # test button
+        # test_button = pygame.draw.rect(screen, (255,255,255), (window_x // 2- title_x/3, window_y // 2 + 400, 500, 100), 0)
+        # test_text = SUBTITLE_FONT.render("IDK", True, (0,0,0))
+        # screen.blit(test_text, (window_x // 2- title_x/6, window_y // 2 +title_y/13+400))
 
 
 
