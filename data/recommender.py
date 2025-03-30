@@ -1,6 +1,7 @@
 import csv
 from typing import Any, Union, Optional, Dict, List
 
+
 class _WeightedVertex:
     """A vertex in a weighted song similarity graph."""
 
@@ -35,6 +36,7 @@ class SongGraph:
         self._song_lookup = {}  # For case-insensitive song name lookup
 
     def add_vertex(self, item: Any, metadata: Optional[dict] = None) -> None:
+        """ Add a new song (vertex) to the graph"""
         if item not in self._vertices:
             self._vertices[item] = _WeightedVertex(item, metadata)
             # Create lookup by name
@@ -43,6 +45,7 @@ class SongGraph:
                 self._song_lookup[song_key] = item
 
     def add_edge(self, item1: Any, item2: Any, weight: Optional[float] = None) -> None:
+        """Create a weighted edge between two existing songs from the data"""
         if item1 in self._vertices and item2 in self._vertices:
             v1 = self._vertices[item1]
             v2 = self._vertices[item2]
@@ -64,6 +67,7 @@ class SongGraph:
         return None
 
     def recommend_songs(self, song_names: List[str], limit: int = 5) -> List[Dict]:
+        """Generate a list of song recommendation from the list of song names"""
         # Convert song names to IDs
         song_ids = []
         for name in song_names:
@@ -140,6 +144,7 @@ def load_graph(songs_file: str) -> SongGraph:
 
     return graph
 
+
 def get_recommendation_count() -> int:
     """Get number of recommendations with proper validation."""
     while True:
@@ -187,6 +192,7 @@ def main():
         print("\nTry another search? (y/n)")
         if input("> ").lower() != 'y':
             break
+
 
 if __name__ == "__main__":
     main()
