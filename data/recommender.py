@@ -1,6 +1,6 @@
 import csv
 import math
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class _WeightedVertex:
@@ -137,9 +137,9 @@ def load_graph(songs_file: str) -> WeightedGraph:
     graph = WeightedGraph()
     songs = []
 
-    with open(songs_file, 'r') as file:
+    with open(songs_file, 'r', encoding='utf-8') as file:
         reader = csv.reader(file)
-        _ = next(reader)
+        headers = next(reader)
 
         for row in reader:
             try:
@@ -205,9 +205,6 @@ def get_song_input() -> list[str]:
     return [] if user_input.lower() == 'q' else [name.strip() for name in user_input.split(',')]
 
 
-# Note: This wouldn't be needed after adding GUI which would take care of all user inputs
-# User inputs 1) Songs from dropdown (preferably can input multiple), 2) Number of recs they want
-# Generates a list of songs (song, artist, album name, genre)
 def main():
     print("Spotify Song Recommender")
     print("Loading song data...")
@@ -218,25 +215,8 @@ def main():
         if not song_ids:
             break
 
-        # limit = get_recommendation_count()
-        recommendations = graph.recommend_songs(song_ids, limit=1000)
-
-        if not recommendations:
-            print("No recommendations available for the given songs.")
-            continue
-
-        max_available = len(recommendations)
-        while True:
-            print(f"How many recommendations would you like? (1-{min(10, max_available)})")
-            try:
-                limit = int(input("> ").strip())
-                if 1 <= limit <= min(10, max_available):
-                    break
-                print(f"Please enter a number between 1 and {min(10, max_available)}.")
-            except ValueError:
-                print("Please enter a valid number :(")
-
-        recommendations = recommendations[:limit]
+        limit = get_recommendation_count()
+        recommendations = graph.recommend_songs(song_ids, limit)
 
         print("\nRecommended Songs:")
         for i, rec in enumerate(recommendations, 1):
