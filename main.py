@@ -8,7 +8,7 @@ columns_to_keep = [
     'valence', 'tempo', 'track_genre'
 ]
 
-with open('spotify_songs.csv', 'r') as file:
+with open('data/spotify_songs.csv', 'r') as file:
     reader = csv.reader(file)
     filtered_rows = []
     for row in reader:
