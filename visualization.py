@@ -22,6 +22,12 @@ SUBTITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", 60)
 PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", 25)
 BIG_PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", 60)
 
+start_button = None
+user_input = None
+input_enter = None
+
+
+
 while running:
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
@@ -34,11 +40,11 @@ while running:
             running = False
         # clicking buttons
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if start_button.collidepoint(event.pos) and current == "home":
+            if start_button and start_button.collidepoint(event.pos) and current == "home":
                 current = "recommender"
-            elif user_input.collidepoint(event.pos) and current == "recommender":
+            elif user_input and user_input.collidepoint(event.pos) and current == "recommender":
                 user_input_active = True
-            elif input_enter.collidepoint(event.pos) and current == "recommender":
+            elif input_enter and input_enter.collidepoint(event.pos) and current == "recommender":
                 user_input_text = ""
                 if question_index < len(question_list) - 1:
                     question_index += 1
@@ -89,3 +95,10 @@ while running:
     clock.tick(60)  # limits FPS to 60
 
 pygame.quit()
+
+
+# import python_ta
+# python_ta.check_all(config={
+#     'max-line-length': 120,
+# })
+
