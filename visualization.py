@@ -8,16 +8,16 @@ screen = pygame.display.set_mode()
 current = "home"
 window_y = screen.get_height()
 window_x = screen.get_width()
-title_x = 750
-title_y = 150
+# title_x = 750
+# title_y = 150
 clock = pygame.time.Clock()
 running = True
 user_input_active = False
 user_input_text = ''
 
 # different fonts
-TITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", 90)
-SUBTITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", 60)
+TITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", int(window_y*0.06))
+SUBTITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", int(window_y*0.04))
 PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", 25)
 BIG_PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", 60)
 
@@ -129,10 +129,10 @@ while running:
     if current == "home":
         # title stuff
         title = TITLE_FONT.render("Spotify Recommender System", True, (255, 255, 255))
-        screen.blit(title, (window_x // 2 - title_x, window_y // 2 - title_y))
-        start_button = pygame.draw.rect(screen, (44, 201, 76), (window_x // 2 - title_x/3, window_y // 2, 500, 100), 0)
+        screen.blit(title, (window_x // 2 - window_x*0.32, window_y // 2 - window_y*0.1))
+        start_button = pygame.draw.rect(screen, (44, 201, 76), (window_x // 2 - window_x*0.11, window_y // 2, 500, 100), 0)
         start_button_text = SUBTITLE_FONT.render("START", True, (255,255,255))
-        screen.blit(start_button_text, (window_x // 2 - title_x/6, window_y // 2 +title_y/13))
+        screen.blit(start_button_text, (window_x // 2 - window_x*0.05, window_y // 2 + window_y*0.008))
 
     elif current == "recommender":
         # displaying question
