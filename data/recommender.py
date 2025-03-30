@@ -139,7 +139,7 @@ def load_graph(songs_file: str) -> WeightedGraph:
 
     with open(songs_file, 'r') as file:
         reader = csv.reader(file)
-        headers = next(reader)
+        _ = next(reader)
 
         for row in reader:
             try:
@@ -215,7 +215,7 @@ def main():
         if not song_ids:
             break
 
-        limit = get_recommendation_count()
+        # limit = get_recommendation_count()
         recommendations = graph.recommend_songs(song_ids, limit=1000)
 
         if not recommendations:
@@ -224,7 +224,7 @@ def main():
 
         max_available = len(recommendations)
         while True:
-            print(f"How many recommendations would you like? (1-{min(10,max_available)})")
+            print(f"How many recommendations would you like? (1-{min(10, max_available)})")
             try:
                 limit = int(input("> ").strip())
                 if 1 <= limit <= min(10, max_available):
