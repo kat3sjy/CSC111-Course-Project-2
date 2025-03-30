@@ -210,7 +210,24 @@ def main():
             break
 
         limit = get_recommendation_count()
-        recommendations = graph.recommend_songs(song_ids, limit)
+        recommendations = graph.recommend_songs(song_ids, limit=1000)
+
+        if not recommendations:
+            print("No recommendations available for the given songs.")
+            continue
+
+        max_available = len(recommendations)
+        while True:
+            print(f"How many recommendations would you like? (1-{min(10,max_available)})")
+            try:
+                limit = int(input("> ").strip())
+                if 1 <= limit <= min(10, max_available):
+                    break
+                print(f"Please enter a number between 1 and {min(10, max_available)}.")
+            except ValueError:
+                print("Please enter a valid number :(")
+
+        recommendations = recommendations[:limit]
 
         print("\nRecommended Songs:")
         for i, rec in enumerate(recommendations, 1):
