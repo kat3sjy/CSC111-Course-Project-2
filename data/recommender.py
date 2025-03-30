@@ -90,46 +90,53 @@ class WeightedGraph:
         """Find a song ID by name (case-insensitive)."""
         return self._song_lookup.get(song_name.lower().strip())
 
-    def recommend_songs(self, song_ids: List[str], limit: int = 5) -> List[Dict]:
-        """Generate song recommendations based on similarity."""
-        if not song_ids:
+    def recommend_songs(self, song_names: List[str], limit: int = 5) -> List[Dict]:
+        """Generate recommendations based on multiple seed songs."""
+        if not song_names:
             return []
 
-        scores = {}
-        for song_id in song_ids:
-            if song_id not in self._vertices:
+        # Initialize recommendation scores
+        recommendations = {}
+
+        for name in song_names:
+            song_id = self.find_song_id(name)
+            if not song_id:
                 continue
 
-            seed_vertex = self._vertices[song_id]
-            for neighbor, weight in seed_vertex.neighbours.items():
-                if neighbor.item in song_ids:
+            vertex = self._vertices[song_id]
+
+            for neighbor, weight in vertex.neighbours.items():
+                if neighbor.item in song_names:  # Skip seed songs
                     continue
 
-                if neighbor.item in scores:
-                    scores[neighbor.item]['score'] += weight
-                    scores[neighbor.item]['count'] += 1
+                if neighbor.item in recommendations:
+                    # If we've seen this recommendation before, add to its score
+                    recommendations[neighbor.item]['total_score'] += weight
+                    recommendations[neighbor.item]['count'] += 1
                 else:
-                    scores[neighbor.item] = {
-                        'score': weight,
+                    # New recommendation
+                    recommendations[neighbor.item] = {
+                        'total_score': weight,
                         'count': 1,
                         'metadata': neighbor.metadata
                     }
 
-        # Calculate average score and sort
-        sorted_scores = sorted(
-            ((k, {
-                'score': v['score'] / v['count'],
-                'metadata': v['metadata']
-            }) for k, v in scores.items()),
-            key=lambda x: (-x[1]['score'], -x[1]['metadata'].get('popularity', 0))
-        )
+        # Calculate average scores and prepare results
+        results = []
+        for song_id, data in recommendations.items():
+            avg_score = data['total_score'] / data['count']
+            results.append({
+                'track': data['metadata']['track_name'],
+                'artist': data['metadata']['artists'],
+                'album': data['metadata']['album_name'],
+                'score': avg_score,
+                'popularity': data['metadata'].get('popularity', 0)
+            })
 
-        return [{
-            'track': data['metadata']['track_name'],
-            'artist': data['metadata']['artists'],
-            'album': data['metadata']['album_name'],
-            'score': data['score']
-        } for _, data in sorted_scores[:limit]]
+        # Sort by average score (descending) then popularity (descending)
+        results.sort(key=lambda x: (-x['score'], -x['popularity']))
+
+        return results[:limit]
 
 
 def load_graph(songs_file: str) -> WeightedGraph:
@@ -139,7 +146,7 @@ def load_graph(songs_file: str) -> WeightedGraph:
 
     with open(songs_file, 'r', encoding='utf-8') as file:
         reader = csv.reader(file)
-        headers = next(reader)
+        next(reader)
 
         for row in reader:
             try:
