@@ -169,7 +169,7 @@ def get_song_input() -> list[str]:
 
 def main():
     print("Spotify Song Recommender")
-    graph = load_graph("spotify_songs_smaller.csv")
+    graph = load_graph('spotify_songs_smaller.csv')
 
     while True:
         # Get song names (no validation)
