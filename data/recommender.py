@@ -74,6 +74,18 @@ class WeightedGraph:
             v1.neighbours[v2] = weight
             v2.neighbours[v1] = weight
 
+    def get_all_vertices(self) -> set:
+        """Return a set of all vertex items in this weighted graph."""
+        return set(self._vertices.keys())
+
+    def get_similarity_score(self, item1, item2):
+        """Return the similarity score between two vertices."""
+        v1 = self._vertices.get(item1)
+        v2 = self._vertices.get(item2)
+        if v1 is None or v2 is None:
+            raise ValueError()
+        return v1.similarity_score(v2)
+
     def find_song_id(self, song_name: str) -> Optional[str]:
         """Find a song ID by name (case-insensitive)."""
         return self._song_lookup.get(song_name.lower().strip())
@@ -153,16 +165,16 @@ def load_graph(songs_file: str) -> WeightedGraph:
     # Build similarity edges more efficiently
     for i in range(len(songs)):
         song1 = songs[i]
-        if song1 not in graph._vertices:
+        if song1 not in graph.get_all_vertices():
             continue
 
         similarities = []
         for j in range(i + 1, len(songs)):
             song2 = songs[j]
-            if song2 not in graph._vertices:
+            if song2 not in graph.get_all_vertices():
                 continue
 
-            similarity = graph._vertices[song1].similarity_score(graph._vertices[song2])
+            similarity = graph.get_similarity_score(song1, song2)
             if similarity > 0.3:  # Threshold
                 similarities.append((song2, similarity))
 
@@ -215,5 +227,5 @@ def main():
             break
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
