@@ -1,12 +1,13 @@
 import csv
 import math
 from typing import Any, Dict, List, Optional, Tuple
+import pickle
 
 
 class _WeightedVertex:
     """A vertex in a weighted song similarity graph."""
 
-    FEATURE_CONFIG = [
+    feature_configuration = [
         # (field_name, weight, min_value, max_value)
         ('danceability', 0.25, 0.0, 1.0),
         ('energy', 0.25, 0.0, 1.0),
@@ -28,7 +29,7 @@ class _WeightedVertex:
         mag1 = 0.0
         mag2 = 0.0
 
-        for feature, weight, min_val, max_val in self.FEATURE_CONFIG:
+        for feature, weight, min_val, max_val in self.feature_configuration:
             # Clip values to expected ranges
             val1 = max(min(self.metadata[feature], max_val), min_val)
             val2 = max(min(other.metadata[feature], max_val), min_val)

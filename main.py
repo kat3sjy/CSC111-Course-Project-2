@@ -30,3 +30,16 @@ with open('spotify_songs.csv', 'r') as file:
 #        euclidean_distance = (total) ** 0.5
 #        return 1 / (1 + euclidean_distance)
 
+
+if __name__ == '__main__':
+    import doctest
+
+    doctest.testmod()
+
+    import python_ta
+
+    python_ta.check_all(config={
+        'extra-imports': [],  # the names (strs) of imported modules
+        'allowed-io': [],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 120
+    })
