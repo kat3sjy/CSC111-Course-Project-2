@@ -14,8 +14,10 @@ please consult our Course Syllabus.
 
 This file is Copyright (c) 2025 Cindy Yang, Kate Shen, Kristen Wong, Sara Kopilovic.
 """
+
 import pygame
 import csv
+import webbrowser
 from recommender import WeightedGraph
 
 # pygame setup
@@ -45,17 +47,29 @@ limit_enter = None
 return_button = None
 rec_limit = None
 
-song_list = ["Comedy", "Ghost - Acoustic", "To Begin Again", "Can't Help Falling In Love", "Hold On", "Days I Will Remember",
-             "Say Something"]
+song_list = [("Comedy", "Gen Hoshino"), ("Ghost - Acoustic", "Ben Woodward"), ("To Begin Again", "Ingrid Michaelson"),
+             ("Can't Help Falling In Love", "Kina Grannis"), ("Hold On", "Chord Overstreet"),
+             ("Days I Will Remember", "Tyrone Wells")
+    , ("Say Something", "A Great Big World, Christina Aguilera")
+             ]
+song_links = ["https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
+              "https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
+              "https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
+              "https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
+              "https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
+              "https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
+              "https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac"]
 
 recommendations = []
 dropdown_menu = []
+listen_menu = []
 limit_menu = []
 song_names = []
 dropdown_selected = [0, 0, 0, 0, 0, 0, 0]
 limit_selected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 error_message = False
+
 
 def load_graph(songs_file: str) -> WeightedGraph:
     """Load song data and build similarity graph."""
@@ -131,12 +145,14 @@ while running:
                     if dropdown_menu[option].collidepoint(event.pos):
                         # print(dropdown_menu)
                         # print("option: ", option)
-                        song_names.append(song_list[option])
+                        song_names.append(song_list[option][0])
                         dropdown_selected[option] += 1
                         error_message = False
+                    elif listen_menu[option].collidepoint(event.pos):
+                        webbrowser.open(song_links[option])
 
                 if input_enter and input_enter.collidepoint(event.pos):
-                    print(song_names)
+                    # print(song_names)
                     if not song_names:
                         error_message = True
                     else:
@@ -155,7 +171,6 @@ while running:
                             rec_limit = limit + 1
                             error_message = False
 
-
                 if limit_enter and limit_enter.collidepoint(event.pos):
                     # Get recommendations
                     if rec_limit is not None:
@@ -172,7 +187,6 @@ while running:
                     limit_selected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                     error_message = False
                     current = "recommender"
-
 
     # fill the screen with a color to delete anything from last frame
     screen.fill("black")
@@ -191,50 +205,58 @@ while running:
 
         if error_message:
             question_text = PARAGRAPH_FONT.render("Please select at least one song.",
-                                                 True,
-                                                 (255, 255, 255))
-            screen.blit(question_text, (20, 55))
+                                                  True,
+                                                  (255, 255, 255))
+            screen.blit(question_text, (40, 60))
 
         # displaying question
         question_text = SUBTITLE_FONT.render("From the following list below, select some songs that you like.", True,
                                              (255, 255, 255))
-        screen.blit(question_text, (20, 30))
+        screen.blit(question_text, (40, 30))
 
         # enter button
-        input_enter = pygame.draw.rect(screen, (255, 255, 255), (window_x // 2, 670, 250, 50), 0)
-        enter_text = SUBTITLE_FONT.render("ENTER", True, (0, 0, 0))
-        screen.blit(enter_text, (window_x // 2, 670))
+        input_enter = pygame.draw.rect(screen, (29, 185, 84), (window_x // 2 + 300, 640, 250, 50), 0)
+        enter_text = SUBTITLE_FONT.render("NEXT", True, (255, 255, 255))
+        screen.blit(enter_text, (window_x // 2 + 380, 647))
 
         # song options to choose from
         for i in range(7):
             # song options
-            dropdown_option = pygame.draw.rect(screen, (255, 255, 255), (20, 100 + (75 * i), 800, 60), 1)
-            dropdown_text = PARAGRAPH_FONT.render(f"{song_list[i]}", True, (255, 255, 255))
-            screen.blit(dropdown_text, (90, 117 + (75 * i)))
+            dropdown_option = pygame.draw.rect(screen, (255, 255, 255), (40, 100 + (75 * i), 820, 60), 1)
+            dropdown_text = PARAGRAPH_FONT.render(f"{song_list[i][0]} by {song_list[i][1]}", True, (255, 255, 255))
+            screen.blit(dropdown_text, (110, 117 + (75 * i)))
+
+            if dropdown_option not in dropdown_menu:
+                dropdown_menu.append(dropdown_option)
 
             # checkbox (circle)
             if dropdown_selected[i] % 2 == 0:
                 checkbox_colour = (255, 255, 255)
                 checkbox_width = 1
-                if song_list[i] in song_names:
-                    song_names.remove(song_list[i])
+                if song_list[i][0] in song_names:
+                    song_names.remove(song_list[i][0])
             else:
                 checkbox_colour = (29, 185, 84)
                 checkbox_width = 0
 
-            check_button = pygame.draw.circle(screen, checkbox_colour, (55, 130 + (75 * i)), 10, checkbox_width)
+            check_button = pygame.draw.circle(screen, checkbox_colour, (75, 130 + (75 * i)), 10, checkbox_width)
 
-            if dropdown_option not in dropdown_menu:
-                dropdown_menu.append(dropdown_option)
+            # listen on spotify buttons
+            listen_button = pygame.draw.rect(screen, (29, 185, 84), (880, 102 + (75 * i), 360, 50), 0)
+            listen_button_text = BIG_PARAGRAPH_FONT.render("Listen", True, (255, 255, 255))
+            screen.blit(listen_button_text, (1015, 109 + (75 * i)))
+
+            if listen_button not in listen_menu:
+                listen_menu.append(listen_button)
 
 
     elif current == "limit":
 
         if error_message:
             question_text = PARAGRAPH_FONT.render("Please choose a number.",
-                                                 True,
-                                                 (255, 255, 255))
-            screen.blit(question_text, (20, 55))
+                                                  True,
+                                                  (255, 255, 255))
+            screen.blit(question_text, (510, 260))
 
         question_text = SUBTITLE_FONT.render("Choose the number of recommendations you want from 1-10", True,
                                              (255, 255, 255))
@@ -277,7 +299,7 @@ while running:
 
         return_button = pygame.draw.rect(screen, (29, 185, 84), (window_x // 2 + 325, 100, 250, 50), 0)
         return_button_text = SUBTITLE_FONT.render("TRY AGAIN", True, (255, 255, 255))
-        screen.blit(return_button_text, (window_x // 2 + 375, 107))
+        screen.blit(return_button_text, (window_x // 2 + 365, 107))
 
     # flip() the display to put your work on screen
     pygame.display.flip()
