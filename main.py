@@ -28,7 +28,7 @@ from recommender import WeightedGraph
 
 def load_graph(songs_file: str) -> WeightedGraph:
     """Load song data and build similarity graph."""
-    graph = WeightedGraph()
+    graph2 = WeightedGraph()
     songs = []
 
     with open(songs_file, 'r', encoding='utf-8') as file:
@@ -51,54 +51,55 @@ def load_graph(songs_file: str) -> WeightedGraph:
                     'instrumentalness': float(row[12])
                 }
                 track_name = metadata['track_name']
-                graph.add_vertex(track_name, metadata)
+                graph2.add_vertex(track_name, metadata)
                 songs.append(track_name)
             except (IndexError, ValueError):
                 continue
 
-    for i in range(len(songs)):
-        song1 = songs[i]
-        if song1 not in graph.get_all_vertices():
+    for m in range(len(songs)):
+        song1 = songs[m]
+        if song1 not in graph2.get_all_vertices():
             continue
 
         similarities = []
-        for j in range(i + 1, len(songs)):
+        for j in range(m + 1, len(songs)):
             song2 = songs[j]
-            if song2 not in graph.get_all_vertices():
+            if song2 not in graph2.get_all_vertices():
                 continue
 
-            similarity = graph.get_similarity_score(song1, song2)
+            similarity = graph2.get_similarity_score(song1, song2)
             if similarity > 0.3:  # Threshold
                 similarities.append((song2, similarity))
 
         # Keep top 20 most similar songs
         similarities.sort(key=lambda x: -x[1])
         for song2, similarity in similarities[:20]:
-            graph.add_edge(song1, song2, similarity)
+            graph2.add_edge(song1, song2, similarity)
 
-    return graph
+    return graph2
 
 
-def get_spotify_search_url(track: str, artist: str) -> str:
+def get_spotify_search_url(track1: str, artist1: str) -> str:
     """Generate a Spotify search URL from a track and artist."""
-    query = f"{track} {artist}"
+    query = f"{track1} {artist1}"
     return f"https://open.spotify.com/search/{query.replace(' ', '%20')}"
 
 
-def generate_random_song_list(graph: WeightedGraph, sample_size: int = 7) -> list[tuple[str, str]]:
+def generate_random_song_list(graph1: WeightedGraph, sample_size: int = 7) -> list[tuple[str, str]]:
     """Generate a new random list of songs from the graph."""
-    all_vertices = list(graph.get_all_vertices())
+    all_vertices = list(graph1.get_all_vertices())
     sample_size = min(sample_size, len(all_vertices))
     random_songs = random.sample(all_vertices, sample_size)
 
-    song_list = []
+    song_list_ = []
     for s in random_songs:
-        vertex = graph.get_vertex(s)
+        vertex = graph1.get_vertex(s)
         if vertex:
             meta = vertex.metadata
-            song_list.append((meta['track_name'], meta['artists']))
+            song_list_.append((meta['track_name'], meta['artists']))
 
-    return song_list
+    return song_list_
+
 
 def truncate_text(text: str, max_length: int) -> str:
     """Truncate the text to the specified maximum length and append '...' if it exceeds the limit."""
@@ -111,6 +112,7 @@ if __name__ == '__main__':
     # recommender.main()
 
     import doctest
+
     doctest.testmod()
     import python_ta
 
@@ -207,7 +209,6 @@ if __name__ == '__main__':
                         else:
                             error_message = True
 
-
                 elif current == "recommendations":
 
                     if return_button and return_button.collidepoint(event.pos):
@@ -233,7 +234,6 @@ if __name__ == '__main__':
             start_button_text = SUBTITLE_FONT.render("START", True, (255, 255, 255))
             screen.blit(start_button_text, (window_x // 2 - window_x * 0.052, window_y // 2 + window_y * 0.008))
 
-
         elif current == "recommender":
 
             if error_message:
@@ -243,7 +243,8 @@ if __name__ == '__main__':
                 screen.blit(question_text, (40, 60))
 
             # displaying question
-            question_text = SUBTITLE_FONT.render("From the following list below, select some songs that you like.", True,
+            question_text = SUBTITLE_FONT.render("From the following list below, select some songs that you like.",
+                                                 True,
                                                  (255, 255, 255))
             screen.blit(question_text, (40, 30))
 
@@ -256,7 +257,8 @@ if __name__ == '__main__':
             for i in range(7):
                 # song options
                 dropdown_option = pygame.draw.rect(screen, (255, 255, 255), (40, 100 + (75 * i), 820, 60), 1)
-                dropdown_text = PARAGRAPH_FONT.render(truncate_text(f"{song_list[i][0]} by {song_list[i][1]}", 70), True, (255, 255, 255))
+                dropdown_text = PARAGRAPH_FONT.render(truncate_text(f"{song_list[i][0]} by {song_list[i][1]}", 70),
+                                                      True, (255, 255, 255))
                 screen.blit(dropdown_text, (110, 117 + (75 * i)))
 
                 if dropdown_option not in dropdown_menu:
@@ -281,7 +283,6 @@ if __name__ == '__main__':
 
                 if listen_button not in listen_menu:
                     listen_menu.append(listen_button)
-
 
         elif current == "limit":
 
