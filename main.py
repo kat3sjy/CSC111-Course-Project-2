@@ -375,7 +375,7 @@ if __name__ == '__main__':
         'extra-imports': [
             'csv', 'random', 'webbrowser', 'pygame', 'recommender'
         ],  # the names (strs) of imported modules
-        'allowed-io': ['open'],  # the names (strs) of functions that call print/open/input
+        "forbidden-io-functions": ["print"],
         'max-line-length': 120,
     })
 
