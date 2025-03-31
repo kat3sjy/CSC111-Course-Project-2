@@ -60,6 +60,13 @@ song_links = ["https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec554
               "https://open.spotify.com/track/5T24Zh9FPZ7Ku6NjrJZmcn?si=2c7385138d044f5c",
               "https://open.spotify.com/track/6Vc5wAMmXdKIAM7WUoEb7N?si=53aaac621aff41a3"]
 
+
+# HERE IT ISSSSS:
+#def get_spotify_search_url(track: str, artist: str) -> str:
+#    """Generate a Spotify search URL from a track and artist."""
+#    query = f"{track} {artist}"
+#    return f"https://open.spotify.com/search/{query.replace(' ', '%20')}"
+
 recommendations = []
 dropdown_menu = []
 listen_menu = []
