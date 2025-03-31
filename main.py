@@ -64,7 +64,8 @@ def load_graph(songs_file: str) -> WeightedGraph:
                 continue
 
             similarity = graph2.get_similarity_score(song1, song2)
-            if similarity > 0.3:  # Threshold
+            similarity_threshold = 0.3
+            if similarity > similarity_threshold:
                 similarities.append((song2, similarity))
 
         # Keep top 20 most similar songs
