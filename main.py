@@ -334,7 +334,7 @@ if __name__ == '__main__':
             rec_listen_buttons = []
 
             for i, rec in enumerate(recommendations, 1):
-                question_text = BIG_PARAGRAPH_FONT.render(truncate_text(f"{i}. {rec['track']} by {rec['artist']}", 80),
+                question_text = BIG_PARAGRAPH_FONT.render(truncate_text(f"{i}. {rec['track']} by {rec['artist']}", 70),
                                                           True,
                                                           (255, 255, 255))
                 screen.blit(question_text, (80, 140 + (50 * i)))
