@@ -38,7 +38,7 @@ user_input_text = ''
 TITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", int(window_y * 0.06))
 SUBTITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", int(window_y * 0.04))
 PARAGRAPH_FONT = pygame.font.Font("Fonts/MPPLUS Rounded 1c/MPLUSRounded1c-Regular.ttf", int(window_y * 0.03))
-BIG_PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", int(window_y * 0.04))
+BIG_PARAGRAPH_FONT = pygame.font.Font("Fonts/MPPLUS Rounded 1c/MPLUSRounded1c-Regular.ttf", int(window_y * 0.04))
 
 start_button = None
 user_input = None
