@@ -121,6 +121,10 @@ class WeightedGraph:
         else:
             raise ValueError
 
+    def get_vertex(self, item: Any) -> Optional['_WeightedVertex']:
+        """Return the vertex for the given item if it exists."""
+        return self._vertices.get(item)
+
     def get_all_vertices(self) -> set:
         """Return a set of all vertex items in this weighted graph."""
         return set(self._vertices.keys())
