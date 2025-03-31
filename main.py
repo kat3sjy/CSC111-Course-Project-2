@@ -19,10 +19,10 @@ from __future__ import annotations
 # import recommender
 # # import visualization
 
-import pygame
 import csv
 import random
 import webbrowser
+import pygame
 from recommender import WeightedGraph
 
 
@@ -100,6 +100,12 @@ def generate_random_song_list(graph: WeightedGraph, sample_size: int = 7) -> lis
 
     return song_list
 
+def truncate_text(text: str, max_length: int) -> str:
+    """Truncate the text to the specified maximum length and append '...' if it exceeds the limit."""
+    if len(text) > max_length:
+        return text[:max_length - 3] + "..."
+    return text
+
 
 if __name__ == '__main__':
     # recommender.main()
@@ -114,8 +120,6 @@ if __name__ == '__main__':
     current = "home"
     window_y = screen.get_height()
     window_x = screen.get_width()
-    # title_x = 750
-    # title_y = 150
     clock = pygame.time.Clock()
     running = True
     user_input_active = False
@@ -252,7 +256,7 @@ if __name__ == '__main__':
             for i in range(7):
                 # song options
                 dropdown_option = pygame.draw.rect(screen, (255, 255, 255), (40, 100 + (75 * i), 820, 60), 1)
-                dropdown_text = PARAGRAPH_FONT.render(f"{song_list[i][0]} by {song_list[i][1]}", True, (255, 255, 255))
+                dropdown_text = PARAGRAPH_FONT.render(truncate_text(f"{song_list[i][0]} by {song_list[i][1]}", 70), True, (255, 255, 255))
                 screen.blit(dropdown_text, (110, 117 + (75 * i)))
 
                 if dropdown_option not in dropdown_menu:
@@ -321,7 +325,7 @@ if __name__ == '__main__':
             screen.blit(question_text, (80, 100))
 
             for i, rec in enumerate(recommendations, 1):
-                question_text = BIG_PARAGRAPH_FONT.render(f"{i}. {rec['track']} by {rec['artist']}",
+                question_text = BIG_PARAGRAPH_FONT.render(truncate_text(f"{i}. {rec['track']} by {rec['artist']}", 80),
                                                           True,
                                                           (255, 255, 255))
                 screen.blit(question_text, (80, 140 + (50 * i)))
