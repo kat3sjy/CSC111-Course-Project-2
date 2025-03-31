@@ -146,6 +146,7 @@ if __name__ == '__main__':
     listen_menu = []
     limit_menu = []
     song_names = []
+    rec_listen_buttons = []
     limit_selected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     error_message = False
@@ -221,6 +222,11 @@ if __name__ == '__main__':
                         current = "recommender"
                         dropdown_menu = []
                         listen_menu = []
+
+                    for button, rec in rec_listen_buttons:
+                        if button.collidepoint(event.pos):
+                            url = get_spotify_search_url(rec['track'], rec['artist'])
+                            webbrowser.open(url)
 
         # fill the screen with a color to delete anything from last frame
         screen.fill("black")
@@ -325,11 +331,18 @@ if __name__ == '__main__':
                                               (255, 255, 255))
             screen.blit(question_text, (80, 100))
 
+            rec_listen_buttons = []
+
             for i, rec in enumerate(recommendations, 1):
                 question_text = BIG_PARAGRAPH_FONT.render(truncate_text(f"{i}. {rec['track']} by {rec['artist']}", 80),
                                                           True,
                                                           (255, 255, 255))
                 screen.blit(question_text, (80, 140 + (50 * i)))
+
+                listen_button = pygame.draw.rect(screen, (29, 185, 84), (1050, 135 + (50 * i), 150, 35), 0)
+                button_text = PARAGRAPH_FONT.render("Listen", True, (255, 255, 255))
+                screen.blit(button_text, (1090, 140 + (50 * i)))
+                rec_listen_buttons.append((listen_button, rec))
 
             return_button = pygame.draw.rect(screen, (29, 185, 84), (window_x // 2 + 325, 100, 250, 50), 0)
             return_button_text = SUBTITLE_FONT.render("TRY AGAIN", True, (255, 255, 255))
