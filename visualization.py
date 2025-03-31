@@ -174,7 +174,7 @@ while running:
                     current = "recommender"
 
 
-    # fill the screen with a color to wipe away anything from last frame
+    # fill the screen with a color to delete anything from last frame
     screen.fill("black")
 
     if current == "home":
