@@ -136,12 +136,28 @@ def get_spotify_search_url(track: str, artist: str) -> str:
     query = f"{track} {artist}"
     return f"https://open.spotify.com/search/{query.replace(' ', '%20')}"
 
+
+def generate_random_song_list(graph: WeightedGraph, sample_size: int = 7) -> list[tuple[str, str]]:
+    """Generate a new random list of songs from the graph."""
+    all_vertices = list(graph.get_all_vertices())
+    sample_size = min(sample_size, len(all_vertices))
+    random_songs = random.sample(all_vertices, sample_size)
+
+    song_list = []
+    for s in random_songs:
+        vertex = graph.get_vertex(s)
+        if vertex:
+            meta = vertex.metadata
+            song_list.append((meta['track_name'], meta['artists']))
+
+    return song_list
+
 graph = load_graph('data/spotify_songs_smaller.csv')
+song_list = generate_random_song_list(graph)
 all_vertices = list(graph.get_all_vertices())
 sample_size = min(7, len(all_vertices))
 random_songs = random.sample(all_vertices, sample_size)
 
-song_list = []
 for s in random_songs:
     vertex = graph.get_vertex(s)
     if vertex:
@@ -205,14 +221,19 @@ while running:
                     else:
                         error_message = True
 
+
             elif current == "recommendations":
+
                 if return_button and return_button.collidepoint(event.pos):
                     song_names = []
                     rec_limit = None
-                    dropdown_selected = [0, 0, 0, 0, 0, 0, 0]
-                    limit_selected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    song_list = generate_random_song_list(graph)
+                    dropdown_selected = [0] * len(song_list)
+                    limit_selected = [0] * 10
                     error_message = False
                     current = "recommender"
+                    dropdown_menu = []
+                    listen_menu = []
 
     # fill the screen with a color to delete anything from last frame
     screen.fill("black")
@@ -318,7 +339,7 @@ while running:
         screen.blit(question_text, (80, 100))
 
         for i, rec in enumerate(recommendations, 1):
-            question_text = BIG_PARAGRAPH_FONT.render(f"{i}. {rec['track']} by {rec['artist']} ({rec['score']:.2f})",
+            question_text = BIG_PARAGRAPH_FONT.render(f"{i}. {rec['track']} by {rec['artist']}",
                                                       True,
                                                       (255, 255, 255))
             screen.blit(question_text, (80, 140 + (50 * i)))
