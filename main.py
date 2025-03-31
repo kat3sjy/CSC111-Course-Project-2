@@ -14,10 +14,6 @@ please consult our Course Syllabus.
 This file is Copyright (c) 2025 Cindy Yang, Kate Shen, Kristen Wong, Sara Kopilovic.
 """
 from __future__ import annotations
-# import csv
-# from typing import Any
-# import recommender
-# # import visualization
 
 import csv
 import random
@@ -109,8 +105,6 @@ def truncate_text(text: str, max_length: int) -> str:
 
 
 if __name__ == '__main__':
-    # recommender.main()
-
     import doctest
 
     doctest.testmod()
@@ -122,7 +116,6 @@ if __name__ == '__main__':
     current = "home"
     window_y = screen.get_height()
     window_x = screen.get_width()
-    clock = pygame.time.Clock()
     running = True
     user_input_active = False
     user_input_text = ''
@@ -133,6 +126,7 @@ if __name__ == '__main__':
     PARAGRAPH_FONT = pygame.font.Font("Fonts/MPPLUS Rounded 1c/MPLUSRounded1c-Regular.ttf", int(window_y * 0.03))
     BIG_PARAGRAPH_FONT = pygame.font.Font("Fonts/MPPLUS Rounded 1c/MPLUSRounded1c-Regular.ttf", int(window_y * 0.04))
 
+    # button variables
     start_button = None
     user_input = None
     input_enter = None
@@ -141,6 +135,7 @@ if __name__ == '__main__':
     return_button = None
     rec_limit = None
 
+    # other variables
     recommendations = []
     dropdown_menu = []
     listen_menu = []
@@ -148,15 +143,15 @@ if __name__ == '__main__':
     song_names = []
     rec_listen_buttons = []
     limit_selected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
     error_message = False
 
+    # creating graph and randomized song options
     graph = load_graph('data/spotify_songs_smaller.csv')
     song_list = generate_random_song_list(graph)
     dropdown_selected = [0] * len(song_list)
 
     while running:
-
+        # getting position of user's mouse
         mouse = pygame.mouse.get_pos()
 
         for event in pygame.event.get():
@@ -165,32 +160,34 @@ if __name__ == '__main__':
                 running = False
             # clicking buttons
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                # start button on homepage
                 if start_button and start_button.collidepoint(event.pos) and current == "home":
                     current = "recommender"
-                # elif user_input and user_input.collidepoint(event.pos) and current == "recommender":
-                #     user_input_active = True
+                # button functions in recommender tab
                 elif current == "recommender":
+                    # song options
                     for option in range(len(dropdown_menu)):
                         if dropdown_menu[option].collidepoint(event.pos):
-                            # print(dropdown_menu)
-                            # print("option: ", option)
                             song_names.append(song_list[option][0])
                             dropdown_selected[option] += 1
                             error_message = False
+                        # spotify listen buttons
                         elif listen_menu[option].collidepoint(event.pos):
                             track, artist = song_list[option]
                             url = get_spotify_search_url(track, artist)
                             webbrowser.open(url)
 
+                    # enter button once songs have been selected
                     if input_enter and input_enter.collidepoint(event.pos):
-                        # print(song_names)
                         if not song_names:
                             error_message = True
                         else:
                             current = "limit"
 
+                # recommendations limit tab
                 elif current == "limit":
                     for limit in range(len(limit_menu)):
+                        # selection conditions on limit buttons
                         if limit_menu[limit].collidepoint(event.pos):
                             if limit_selected[limit] % 2 != 0:
                                 rec_limit = None
@@ -210,8 +207,9 @@ if __name__ == '__main__':
                         else:
                             error_message = True
 
+                # song recommendations tab
                 elif current == "recommendations":
-
+                    # resetting variables when program resets (try again button)
                     if return_button and return_button.collidepoint(event.pos):
                         song_names = []
                         rec_limit = None
@@ -222,7 +220,7 @@ if __name__ == '__main__':
                         current = "recommender"
                         dropdown_menu = []
                         listen_menu = []
-
+                    # spotify links to recommended songs
                     for button, rec in rec_listen_buttons:
                         if button.collidepoint(event.pos):
                             url = get_spotify_search_url(rec['track'], rec['artist'])
@@ -232,21 +230,25 @@ if __name__ == '__main__':
         screen.fill("black")
 
         if current == "home":
-            # title stuff
+            # title and start button
             title = TITLE_FONT.render("Spotify Recommender System", True, (255, 255, 255))
             screen.blit(title, (window_x // 2 - window_x * 0.28, window_y // 2 - window_y * 0.1))
             start_button_rect = pygame.Rect(window_x // 2 - window_x * 0.11, window_y // 2, 250, 50)
+
+            # start button colour change
             if start_button_rect.collidepoint(mouse):
                 button_color = (40, 220, 100)  # Hover color
             else:
                 button_color = (29, 185, 84)  # Normal color
-            start_button = pygame.draw.rect(screen, button_color, start_button_rect, border_radius=12)
 
+            # drawing button
+            start_button = pygame.draw.rect(screen, button_color, start_button_rect, border_radius=12)
             start_button_text = SUBTITLE_FONT.render("START", True, (255, 255, 255))
             screen.blit(start_button_text, (window_x // 2 - window_x * 0.052, window_y // 2 + window_y * 0.008))
 
         elif current == "recommender":
 
+            # error message if song isn't selected
             if error_message:
                 question_text = PARAGRAPH_FONT.render("Please select at least one song.",
                                                       True,
@@ -300,7 +302,7 @@ if __name__ == '__main__':
                     listen_menu.append(listen_button)
 
         elif current == "limit":
-
+            # error message if limit number is not selected
             if error_message:
                 question_text = PARAGRAPH_FONT.render("Please choose a number.",
                                                       True,
@@ -312,7 +314,7 @@ if __name__ == '__main__':
             screen.blit(question_text, (160, 230))
 
             for i in range(10):
-
+                # changing limit colour buttons if it is selected or not
                 if limit_selected[i] % 2 != 0:
                     limit_colour = (29, 185, 84)
                     limit_width = 0
@@ -320,9 +322,11 @@ if __name__ == '__main__':
                     limit_colour = (255, 255, 255)
                     limit_width = 1
 
+                # drawing limit buttons
                 num_recs = pygame.draw.rect(screen, limit_colour, (70 + (114 * i), window_y // 2 - 50, 100, 100),
                                             limit_width)
                 num_recs_text = SUBTITLE_FONT.render(f"{i + 1}", True, (255, 255, 255))
+                # change in position of '10' since it is a wider character
                 if i < 10:
                     screen.blit(num_recs_text, (108 + (114 * i), window_y // 2 - 20))
                 else:
@@ -331,6 +335,7 @@ if __name__ == '__main__':
                 if num_recs not in limit_menu:
                     limit_menu.append(num_recs)
 
+            # drawing enter button
             limit_enter_rect = pygame.Rect(window_x // 2 - 125, 460, 250, 50)
             limit_enter_color = (40, 220, 100) if limit_enter_rect.collidepoint(mouse) else (29, 185, 84)
             limit_enter = pygame.draw.rect(screen, limit_enter_color, limit_enter_rect, border_radius=12)
@@ -350,6 +355,7 @@ if __name__ == '__main__':
                                                           (255, 255, 255))
                 screen.blit(question_text, (80, 140 + (50 * i)))
 
+                # spotify link buttons
                 listen_button_rect = pygame.Rect(1050, 135 + (50 * i), 150, 35)
                 listen_button_color = (40, 220, 100) if listen_button_rect.collidepoint(mouse) else (29, 185, 84)
                 listen_button = pygame.draw.rect(screen, listen_button_color, listen_button_rect, border_radius=10)
@@ -358,6 +364,7 @@ if __name__ == '__main__':
                 screen.blit(button_text, (1090, 140 + (50 * i)))
                 rec_listen_buttons.append((listen_button, rec))
 
+            # try again button
             return_button_rect = pygame.Rect(window_x // 2 + 325, 100, 250, 50)
             return_button_color = (40, 220, 100) if return_button_rect.collidepoint(mouse) else (29, 185, 84)
             return_button = pygame.draw.rect(screen, return_button_color, return_button_rect, border_radius=12)
@@ -366,10 +373,6 @@ if __name__ == '__main__':
 
         # flip() the display to put your work on screen
         pygame.display.flip()
-
-        clock.tick(60)
-
-    # pygame.quit()
 
     python_ta.check_all(config={
         'extra-imports': [
