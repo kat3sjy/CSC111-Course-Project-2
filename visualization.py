@@ -18,7 +18,7 @@ import pygame
 import csv
 from recommender import WeightedGraph
 
-# pygame setup waaaaaa
+# pygame setup
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 current = "home"
@@ -42,19 +42,20 @@ user_input = None
 input_enter = None
 test_button = None
 limit_enter = None
+return_button = None
+rec_limit = None
 
 song_list = ["Comedy", "Ghost - Acoustic", "To Begin Again", "Can't Help Falling In Love", "Hold On", "Days I Will Remember",
              "Say Something"]
-song_names = []
+
 recommendations = []
 dropdown_menu = []
+limit_menu = []
+song_names = []
 dropdown_selected = [0, 0, 0, 0, 0, 0, 0]
 limit_selected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-limit_menu = []
-rec_limit = None
 
 error_message = False
-
 
 def load_graph(songs_file: str) -> WeightedGraph:
     """Load song data and build similarity graph."""
@@ -163,6 +164,15 @@ while running:
                     else:
                         error_message = True
 
+            elif current == "recommendations":
+                if return_button and return_button.collidepoint(event.pos):
+                    song_names = []
+                    rec_limit = None
+                    dropdown_selected = [0, 0, 0, 0, 0, 0, 0]
+                    limit_selected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    error_message = False
+                    current = "recommender"
+
 
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("black")
@@ -264,6 +274,10 @@ while running:
                                                       True,
                                                       (255, 255, 255))
             screen.blit(question_text, (80, 140 + (50 * i)))
+
+        return_button = pygame.draw.rect(screen, (29, 185, 84), (window_x // 2 + 325, 100, 250, 50), 0)
+        return_button_text = SUBTITLE_FONT.render("TRY AGAIN", True, (255, 255, 255))
+        screen.blit(return_button_text, (window_x // 2 + 375, 107))
 
     # flip() the display to put your work on screen
     pygame.display.flip()
