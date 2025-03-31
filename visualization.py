@@ -37,7 +37,7 @@ user_input_text = ''
 # different fonts
 TITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", int(window_y * 0.06))
 SUBTITLE_FONT = pygame.font.Font("Fonts/Audiowide/Audiowide-Regular.ttf", int(window_y * 0.04))
-PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", int(window_y * 0.03))
+PARAGRAPH_FONT = pygame.font.Font("Fonts/MPPLUS Rounded 1c/MPLUSRounded1c-Regular.ttf", int(window_y * 0.03))
 BIG_PARAGRAPH_FONT = pygame.font.Font("Fonts/Lexend/Lexend-VariableFont_wght.ttf", int(window_y * 0.04))
 
 start_button = None
@@ -48,32 +48,11 @@ limit_enter = None
 return_button = None
 rec_limit = None
 
-#song_list = [("Comedy", "Gen Hoshino"), ("Ghost - Acoustic", "Ben Woodward"), ("To Begin Again", "Ingrid Michaelson"),
-#             ("Can't Help Falling In Love", "Elvis Presley"), ("Hold On", "Chord Overstreet"),
-#             ("Days I Will Remember", "Tyrone Wells")
-#    , ("Say Something", "A Great Big World, Christina Aguilera")
-#             ]
-#song_links = ["https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
-#              "https://open.spotify.com/track/4qPNDBW1i3p13qLCt0Ki3A?si=2cd3b308ec274546",
-#              "https://open.spotify.com/track/3vtfVhvGaHWss7t3BAd2il?si=bbe1e00d12c045c2",
-#              "https://open.spotify.com/track/0pYDUAXXUanILl4FrDtdIt?si=6c81c87329524f35",
-#              "https://open.spotify.com/track/5vjLSffimiIP26QG5WcN2K?si=4f1b8f1c3e0445f1",
-#              "https://open.spotify.com/track/5T24Zh9FPZ7Ku6NjrJZmcn?si=2c7385138d044f5c",
-#             "https://open.spotify.com/track/6Vc5wAMmXdKIAM7WUoEb7N?si=53aaac621aff41a3"]
-
-
-# HERE IT ISSSSS:
-#def get_spotify_search_url(track: str, artist: str) -> str:
-#    """Generate a Spotify search URL from a track and artist."""
-#    query = f"{track} {artist}"
-#    return f"https://open.spotify.com/search/{query.replace(' ', '%20')}"
-
 recommendations = []
 dropdown_menu = []
 listen_menu = []
 limit_menu = []
 song_names = []
-dropdown_selected = [0, 0, 0, 0, 0, 0, 0]
 limit_selected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 error_message = False
@@ -154,16 +133,6 @@ def generate_random_song_list(graph: WeightedGraph, sample_size: int = 7) -> lis
 
 graph = load_graph('data/spotify_songs_smaller.csv')
 song_list = generate_random_song_list(graph)
-all_vertices = list(graph.get_all_vertices())
-sample_size = min(7, len(all_vertices))
-random_songs = random.sample(all_vertices, sample_size)
-
-for s in random_songs:
-    vertex = graph.get_vertex(s)
-    if vertex:
-        meta = vertex.metadata
-        song_list.append((meta['track_name'], meta['artists']))
-
 dropdown_selected = [0] * len(song_list)
 
 while running:
