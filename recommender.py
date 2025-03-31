@@ -282,7 +282,7 @@ def main():
 
         print("\nRecommended Songs:")
         for i, rec in enumerate(recommendations, 1):
-            print(f"{i}. {rec['track']} by {rec['artist']} (score: {rec['score']:.3f})")
+            print(f"{i}. {rec['track']} by {rec['artist']}")
 
         print("\nTry another search? (y/n)")
         if input("> ").lower() != 'y':
