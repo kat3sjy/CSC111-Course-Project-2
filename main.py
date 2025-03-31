@@ -353,10 +353,14 @@ if __name__ == '__main__':
 
         clock.tick(60)
 
-    pygame.quit()
+    # pygame.quit()
 
     python_ta.check_all(config={
-        'extra-imports': [],  # the names (strs) of imported modules
-        'allowed-io': [],  # the names (strs) of functions that call print/open/input
-        'max-line-length': 120
+        'extra-imports': [
+            'csv', 'random', 'webbrowser', 'pygame', 'recommender'
+        ],  # the names (strs) of imported modules
+        'allowed-io': ['open'],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 120,
     })
+
+    pygame.quit()
