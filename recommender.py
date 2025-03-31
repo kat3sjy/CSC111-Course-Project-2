@@ -90,11 +90,11 @@ class _WeightedVertex:
 
 
 class WeightedGraph:
-    """A weighted graph used to represent songs and their similarities."""
-    # Private Instance Attributes:
-    #     -_vertices:
-    #         A collection of the vertices contained in this graph.
-    #         Maps item to _Vertex object.
+    """A weighted graph used to represent songs and their similarities.
+
+    Private Instance Attributes:
+        -_vertices: A collection of the vertices contained in this graph. Maps item to _Vertex object.
+    """
     _vertices: dict[Any, _WeightedVertex]
 
     def __init__(self) -> None:
