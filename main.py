@@ -235,8 +235,13 @@ if __name__ == '__main__':
             # title stuff
             title = TITLE_FONT.render("Spotify Recommender System", True, (255, 255, 255))
             screen.blit(title, (window_x // 2 - window_x * 0.28, window_y // 2 - window_y * 0.1))
-            start_button = pygame.draw.rect(screen, (29, 185, 84),
-                                            (window_x // 2 - window_x * 0.11, window_y // 2, 250, 50), 0)
+            start_button_rect = pygame.Rect(window_x // 2 - window_x * 0.11, window_y // 2, 250, 50)
+            if start_button_rect.collidepoint(mouse):
+                button_color = (40, 220, 100)  # Hover color
+            else:
+                button_color = (29, 185, 84)  # Normal color
+            start_button = pygame.draw.rect(screen, button_color, start_button_rect, border_radius=12)
+
             start_button_text = SUBTITLE_FONT.render("START", True, (255, 255, 255))
             screen.blit(start_button_text, (window_x // 2 - window_x * 0.052, window_y // 2 + window_y * 0.008))
 
@@ -255,7 +260,9 @@ if __name__ == '__main__':
             screen.blit(question_text, (40, 30))
 
             # enter button
-            input_enter = pygame.draw.rect(screen, (29, 185, 84), (window_x // 2 + 300, 640, 250, 50), 0)
+            input_enter_rect = pygame.Rect(window_x // 2 + 300, 640, 250, 50)
+            input_enter_color = (40, 220, 100) if input_enter_rect.collidepoint(mouse) else (29, 185, 84)
+            input_enter = pygame.draw.rect(screen, input_enter_color, input_enter_rect, border_radius=12)
             enter_text = SUBTITLE_FONT.render("NEXT", True, (255, 255, 255))
             screen.blit(enter_text, (window_x // 2 + 380, 647))
 
@@ -283,7 +290,9 @@ if __name__ == '__main__':
                 check_button = pygame.draw.circle(screen, checkbox_colour, (75, 130 + (75 * i)), 10, checkbox_width)
 
                 # listen on spotify buttons
-                listen_button = pygame.draw.rect(screen, (29, 185, 84), (880, 102 + (75 * i), 360, 50), 0)
+                listen_button_rect = pygame.Rect(880, 102 + (75 * i), 360, 50)
+                listen_button_color = (40, 220, 100) if listen_button_rect.collidepoint(mouse) else (29, 185, 84)
+                listen_button = pygame.draw.rect(screen, listen_button_color, listen_button_rect, border_radius=10)
                 listen_button_text = BIG_PARAGRAPH_FONT.render("Listen", True, (255, 255, 255))
                 screen.blit(listen_button_text, (1015, 109 + (75 * i)))
 
@@ -322,7 +331,9 @@ if __name__ == '__main__':
                 if num_recs not in limit_menu:
                     limit_menu.append(num_recs)
 
-            limit_enter = pygame.draw.rect(screen, (29, 185, 84), (window_x // 2 - 125, 460, 250, 50), 0)
+            limit_enter_rect = pygame.Rect(window_x // 2 - 125, 460, 250, 50)
+            limit_enter_color = (40, 220, 100) if limit_enter_rect.collidepoint(mouse) else (29, 185, 84)
+            limit_enter = pygame.draw.rect(screen, limit_enter_color, limit_enter_rect, border_radius=12)
             limit_enter_text = SUBTITLE_FONT.render("ENTER", True, (255, 255, 255))
             screen.blit(limit_enter_text, (window_x // 2 - 55, 467))
 
@@ -339,12 +350,17 @@ if __name__ == '__main__':
                                                           (255, 255, 255))
                 screen.blit(question_text, (80, 140 + (50 * i)))
 
-                listen_button = pygame.draw.rect(screen, (29, 185, 84), (1050, 135 + (50 * i), 150, 35), 0)
+                listen_button_rect = pygame.Rect(1050, 135 + (50 * i), 150, 35)
+                listen_button_color = (40, 220, 100) if listen_button_rect.collidepoint(mouse) else (29, 185, 84)
+                listen_button = pygame.draw.rect(screen, listen_button_color, listen_button_rect, border_radius=10)
+
                 button_text = PARAGRAPH_FONT.render("Listen", True, (255, 255, 255))
                 screen.blit(button_text, (1090, 140 + (50 * i)))
                 rec_listen_buttons.append((listen_button, rec))
 
-            return_button = pygame.draw.rect(screen, (29, 185, 84), (window_x // 2 + 325, 100, 250, 50), 0)
+            return_button_rect = pygame.Rect(window_x // 2 + 325, 100, 250, 50)
+            return_button_color = (40, 220, 100) if return_button_rect.collidepoint(mouse) else (29, 185, 84)
+            return_button = pygame.draw.rect(screen, return_button_color, return_button_rect, border_radius=12)
             return_button_text = SUBTITLE_FONT.render("TRY AGAIN", True, (255, 255, 255))
             screen.blit(return_button_text, (window_x // 2 + 365, 107))
 
