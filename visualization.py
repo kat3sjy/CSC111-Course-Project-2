@@ -48,17 +48,17 @@ return_button = None
 rec_limit = None
 
 song_list = [("Comedy", "Gen Hoshino"), ("Ghost - Acoustic", "Ben Woodward"), ("To Begin Again", "Ingrid Michaelson"),
-             ("Can't Help Falling In Love", "Kina Grannis"), ("Hold On", "Chord Overstreet"),
+             ("Can't Help Falling In Love", "Elvis Presley"), ("Hold On", "Chord Overstreet"),
              ("Days I Will Remember", "Tyrone Wells")
     , ("Say Something", "A Great Big World, Christina Aguilera")
              ]
 song_links = ["https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
-              "https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
-              "https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
-              "https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
-              "https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
-              "https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac",
-              "https://open.spotify.com/track/5SuOikwiRyPMVoIQDJUgSV?si=4e3ec55401cc41ac"]
+              "https://open.spotify.com/track/4qPNDBW1i3p13qLCt0Ki3A?si=2cd3b308ec274546",
+              "https://open.spotify.com/track/3vtfVhvGaHWss7t3BAd2il?si=bbe1e00d12c045c2",
+              "https://open.spotify.com/track/0pYDUAXXUanILl4FrDtdIt?si=6c81c87329524f35",
+              "https://open.spotify.com/track/5vjLSffimiIP26QG5WcN2K?si=4f1b8f1c3e0445f1",
+              "https://open.spotify.com/track/5T24Zh9FPZ7Ku6NjrJZmcn?si=2c7385138d044f5c",
+              "https://open.spotify.com/track/6Vc5wAMmXdKIAM7WUoEb7N?si=53aaac621aff41a3"]
 
 recommendations = []
 dropdown_menu = []
