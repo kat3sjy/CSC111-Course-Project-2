@@ -15,9 +15,8 @@ please consult our Course Syllabus.
 This file is Copyright (c) 2025 Cindy Yang, Kate Shen, Kristen Wong, Sara Kopilovic.
 """
 from __future__ import annotations
-import csv
 import math
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 
 class _WeightedVertex:
@@ -27,6 +26,7 @@ class _WeightedVertex:
 
     Instance Attributes:
         - item: The data stored in this vertex, representing a song.
+        - metadata: The metadata of each song in the csv file
         - neighbours: The vertices that are adjacent to this vertex.
         - feature_configuration: A tuple that defines the audio features that are considered
                                  for every song and their respectives weights. It uses the format:
@@ -37,17 +37,9 @@ class _WeightedVertex:
         - all(self in u.neighbours for u in self.neighbours)
     """
     item: str
+    metadata: Optional[dict] = None
     neighbours: dict[_WeightedVertex, float]
-    feature_configuration = [
-        # (field_name, weight, min_value, max_value)
-        ('danceability', 0.25, 0.0, 1.0),
-        ('energy', 0.25, 0.0, 1.0),
-        ('valence', 0.15, 0.0, 1.0),
-        ('tempo', 0.1, 50, 200),
-        ('loudness', 0.1, -30, 0),
-        ('acousticness', 0.1, 0.0, 1.0),
-        ('instrumentalness', 0.05, 0.0, 1.0)
-    ]
+    feature_configuration: list[tuple[str, float, float, float]]
 
     def __init__(self, item: Any, metadata: Optional[dict] = None) -> None:
         """Initialize a new vertex with the given.
@@ -57,6 +49,17 @@ class _WeightedVertex:
         self.item = item
         self.metadata = metadata if metadata is not None else {}
         self.neighbours = {}
+
+        self.feature_configuration = [
+            # (field_name, weight, min_value, max_value)
+            ('danceability', 0.25, 0.0, 1.0),
+            ('energy', 0.25, 0.0, 1.0),
+            ('valence', 0.15, 0.0, 1.0),
+            ('tempo', 0.1, 50, 200),
+            ('loudness', 0.1, -30, 0),
+            ('acousticness', 0.1, 0.0, 1.0),
+            ('instrumentalness', 0.05, 0.0, 1.0)
+        ]
 
     def similarity_score(self, other: '_WeightedVertex') -> float:
         """Calculate weighted similarity between this vertex and other."""
@@ -94,9 +97,8 @@ class WeightedGraph:
     #         Maps item to _Vertex object.
     _vertices: dict[Any, _WeightedVertex]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._vertices = {}
-        self._song_lookup = {}
 
     def add_vertex(self, item: Any, metadata: Optional[dict] = None) -> None:
         """Add a song vertex to the graph.
@@ -129,7 +131,7 @@ class WeightedGraph:
         """Return a set of all vertex items in this weighted graph."""
         return set(self._vertices.keys())
 
-    def get_similarity_score(self, item1, item2):
+    def get_similarity_score(self, item1: Any, item2: Any) -> float:
         """Return the similarity score between two vertices."""
         v1 = self._vertices.get(item1)
         v2 = self._vertices.get(item2)
@@ -195,11 +197,10 @@ class WeightedGraph:
 
 
 if __name__ == '__main__':
-
     import python_ta
 
     python_ta.check_all(config={
-        'extra-imports': ['pygame', 'csv', 'recommender'],
+        'extra-imports': ['pygame', 'csv', 'recommender', 'math'],
         'allowed-io': [],
         'max-line-length': 120
     })
